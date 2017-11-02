@@ -5,6 +5,7 @@
 from sys import argv
 from os import system, path, mkdir, chdir
 
+
 def how_many_runs():
     """
     Determine how many runs to do, return the numbers corresponding
@@ -35,6 +36,7 @@ def get_init(filename, first_run, last_run):
     run_list = range(first_run, last_run)
 
     return init_value_strings, run_list
+
 
 def wipe(argv, run_number):
     name = argv[1][:len(argv[1]) - len('.txt')]
@@ -69,7 +71,6 @@ def main(argv):
     first_run, last_run = how_many_runs()
     init_value_strings, run_list = get_init(filename, first_run, last_run)
     get_the_runs_and_wipe(init_value_strings, run_list)
-
 
 
 if (__name__ == '__main__'):
