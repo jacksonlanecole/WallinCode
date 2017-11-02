@@ -1,7 +1,7 @@
 # WallinCode
 
 ## run_multiple script
-This fork of WallinCode contains run_multiple, a python3 script that runs specific runs or specific ranges of runs from the Overlapping galaxy pairs table at [https://data.galaxyzoo.org/mergers.html](https://data.galaxyzoo.org/mergers.html).
+This fork of WallinCode contains run_multiple, a python3 script that runs specific runs or specific ranges of runs from the Overlapping galaxy pairs table at [https://data.galaxyzoo.org/mergers.html](https://data.galaxyzoo.org/mergers.html). I suggest placing the data files in a directory within the working directory and copying the necessary files from the input directory when needed.
 
 To use run_multiple, enter
 

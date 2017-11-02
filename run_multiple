@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# I will be adding comments at a later time!
+
 from sys import argv
 from os import system, path, mkdir, chdir
 
