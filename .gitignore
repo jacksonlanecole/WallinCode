@@ -2,3 +2,7 @@
 *.o
 mod_run
 output
+basic_run
+fort.*
+gscript
+*dSYM
