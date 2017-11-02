@@ -6,7 +6,7 @@ from os import system, path, mkdir, chdir
 def how_many_runs():
     """
     Determine how many runs to do, return the numbers corresponding
-    to the first and last runs. first_run and last_run will be first_run + 1 if only one run is wanted.  """ 
+    to the first and last runs. first_run and last_run will be first_run + 1 if only one run is wanted.  """
     how_many = 1000
     while how_many != 1 and how_many != 2:
         how_many = int(input('Would you like to run one run or multiple runs? (1),(2):\n(1) one\n(2) multiple\n> '))
