@@ -26,8 +26,8 @@ program basic_run
 
 ! set the target parameters
 ! set the target parameters
-  nparticles1 = 10000
-  nparticles2 = 5000
+  nparticles1 = 10000!100000!10000
+  nparticles2 = 5000!50000!5000
   call DEFAULT_PARAMETERS(nparticles1, nparticles2)
 
 
@@ -77,7 +77,7 @@ program basic_run
 
     
     if (mod(istep, 50) == 5) then
-!      call CREATE_IMAGES
+        call CREATE_IMAGES
     endif
   enddo
 
