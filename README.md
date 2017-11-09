@@ -23,3 +23,9 @@ I recommend symlinking plotting_test in general to
 where the data files for each time step are located (i.e. a.000, a.001, ...). This directory structure is created by **run_multiple**.
 
 There is also an option to produce a gif of the 3D runs (not working at the moment, not sure what the problem is.)
+
+## make_real
+This is a python script that intends to produce realistic images of a galaxy end state output. As of right now, it is in the beginning stages and only calls a simple gaussian filter over the whole image and a median filter.
+
+## Current State of Things
+As of right now, several lines in plotting_test have been commented out for testing. Nothing is great yet.
