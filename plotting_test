@@ -3,7 +3,11 @@
 from os import walk
 from os.path import isdir, exists
 from sys import argv
-from numpy import empty
+import numpy as np
+import scipy.ndimage as ndimage
+from scipy import misc
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
@@ -14,7 +18,7 @@ import imageio
 def load_data(filename):
     print(filename)
     data_file = open(filename, 'r')
-    point_data = empty(shape=[len(data_file.readlines()), 6], dtype=float)
+    point_data = np.empty(shape=[len(data_file.readlines()), 6], dtype=float)
     data_file.seek(0)
     for i, line in enumerate(data_file):
         for j, value in enumerate(line.split()):
@@ -52,18 +56,33 @@ def plotting_2d(point_data, filename_wo_txt):
     x = point_data[:, 0]
     y = point_data[:, 1]
     z = point_data[:, 2]
-    fig = plt.figure(figsize=(10, 10))
+    fig = plt.figure()
+    rect = fig.patch
+    rect.set_facecolor('black')
     ax = fig.gca()
     # plt.xlim(-8,8)
     # plt.ylim(-8,8)
     # ax = fig.add_subplot(111, projection='3d')
-    plt.scatter(eval(plot_list[0]), eval(plot_list[1]), s=1, marker='.')
-    plt.xticks( [],  [] )
-    plt.yticks( [],  [] )
+    ax.scatter(eval(plot_list[0]), eval(plot_list[1]), s=0.5, marker='.', c='white', edgecolor='None')
     ax.set_frame_on(False)
     plt.axis('off')
-    plt.savefig('{}_2d.png'.format(filename_wo_txt), dpi=1000, pad_inches=0)
+    plt.savefig('{}_2d.png'.format(filename_wo_txt), facecolor=fig.get_facecolor(), edgecolor='none', dpi=1000, pad_inches=0)
+
     plt.close()
+
+
+def gaussian_blur():
+    # smoothed = np.empty(shape=np.shape(data))
+    image_data = imageio.imread('a.101_2d.png')
+    # misc.imsave('a.101_2d.png', image)
+    gaussian_smoothed = ndimage.gaussian_filter(image_data, 8)
+    median_smoothed = ndimage.median_filter(image_data, 8)
+    imageio.imwrite('gaussian_smoothed.png', gaussian_smoothed)
+    imageio.imwrite('median_smoothed.png', median_smoothed)
+    #plt.imshow(image)
+    #plt.show()
+
+#gaussian_blur()
 
 def plotting_3d(point_data, filename_wo_txt):
     x = point_data[:, 0]
@@ -75,7 +94,7 @@ def plotting_3d(point_data, filename_wo_txt):
     ax.set_ylim3d(-8, 8)
     ax.set_zlim3d(-8, 8)
     # ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(x, y, z, s=1, marker='.', edgecolor='None')
+    ax.scatter(x, y, z, s=0.1, marker='.', edgecolor='None')
     plt.xticks([],  [])
     plt.yticks([],  [])
     plt.savefig('{}_3d.png'.format(filename_wo_txt), dpi=1000)
@@ -103,6 +122,8 @@ def determine_plot_types():
                 plot_type = int(input('Enter the number corresponding to your choice of plotting:\n(1) 2D\n(2) 3D\n(3) both\n> '))
                 if plot_type in [1, 2, 3]:
                     break
+                elif plot_type == 5:
+                    break
                 else:
                     print('ERROR: Enter valid choice')
             except ValueError:
@@ -127,24 +148,32 @@ def gif_creation(filename_wo_txt, all_data):
 def main(argv):
     yes = frozenset(['yes', 'y', 'ye', 'ys'])
     if len(argv) > 1:
-        filename = argv[1]
-        filename_wo_txt = filename[:len(filename)]
-        make_image_files()
+        if argv[1] != ('gaussian'):
+            filename = argv[1]
+            filename_wo_txt = filename[:len(filename)]
+            make_image_files()
 
-        point_data = load_data(filename)
 
-        plot_type, gif_answer = determine_plot_types()
-        if plot_type == 1:
-            plotting_2d(point_data, filename_wo_txt)
-        elif plot_type == 2:
-            plotting_3d(point_data, filename_wo_txt)
-        elif plot_type == 3:
-            plotting_2d(point_data, filename_wo_txt)
-            plotting_3d(point_data, filename_wo_txt)
+            plot_type, gif_answer = determine_plot_types()
+            if plot_type == 1:
+                point_data = load_data(filename)
+                plotting_2d(point_data, filename_wo_txt)
+                gaussian_blur()
+            elif plot_type == 2:
+                point_data = load_data(filename)
+                plotting_3d(point_data, filename_wo_txt)
+            elif plot_type == 3:
+                point_data = load_data(filename)
+                plotting_2d(point_data, filename_wo_txt)
+                plotting_3d(point_data, filename_wo_txt)
+            else:
+                gaussian_blur()
 
-        if gif_answer in yes:
-            all_data = load_all_data()
-            gif_creation(filename_wo_txt, all_data)
+            if gif_answer in yes:
+                all_data = load_all_data()
+                gif_creation(filename_wo_txt, all_data)
+        else:
+            gaussian_blur()
 
     else:
         print("ERROR: plotting_testing takes 1 argument. None given. Run again while giving the name of the data file at the time step you wish to plot.")
