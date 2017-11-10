@@ -47,6 +47,7 @@ def wipe(argv, run_number):
     else:
         if path.isdir('./output/{}'.format(name)) == False:
             mkdir('./output/{}'.format(name))
+            mkdir('./output/{}/{}'.format(name, run_number))
         else:
             if path.isdir('./output/{}/{}'.format(name, run_number)) == False:
                 mkdir('./output/{}/{}'.format(name, run_number))
