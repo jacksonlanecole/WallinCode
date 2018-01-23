@@ -1,0 +1,11 @@
+*.mod
+*.o
+mod_run
+output
+basic_run
+fort.*
+gscript
+*dSYM
+input
+testing_environment
+target_images
