@@ -7,3 +7,5 @@ fort.*
 gscript
 *dSYM
 input
+testing_environment
+target_images
