@@ -17,6 +17,7 @@ Below is a table containing the SDSSID numbers from DR7, as well as the RA and
 DEC for each of the targets. The for each target take you to the associated
 pages for DR7 and DR14, as well as the Galaxy Zoo page.
 
+<table>
 <tr>
 	<th>SDSSID</th>
 	<th>RA</th>
