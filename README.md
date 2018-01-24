@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Overview](#overview)
 - [Targets](#targets)
+- [Target Images](#target_images)
 - [Current state](#current)
 - [run_multiple script](#run_multiple_script)
 - [plotting_test](#plotting_test)
@@ -459,6 +460,14 @@ pages for DR7 and DR14, as well as the Galaxy Zoo page.
 	<td><a href="https://data.galaxyzoo.org/galaxy-zoo-mergers/targets/group10/index.html#1237678620102623480">Link</a><br></td>
 </tr>
 </table>
+
+## Target Images<a id="target_images">
+Real images of the target galaxies are contained in the `target_images`
+directory. These are to be used as the reference images for comparison in testing.
+
+To my knowledge, the original dataset is based off of images from SDSS DR7, but
+the image directory will contain processed images of those same targets using
+data from SDSS DR14.
 
 
 ## Current State of Things<a id="current">
