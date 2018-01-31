@@ -2,6 +2,7 @@ import sys
 import os
 import math
 
+
 def formstring(array):
     s  = ""
     for v in array:
