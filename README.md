@@ -13,6 +13,16 @@
 This is the development branch of a fork of
 [Wallincode](https://github.com/JSPAM-Manga/WallinCode).
 
+The recent developments in this fork of JSPAM-Manga focus on creating a machine
+scoring mechanism for comparing
+rendered galaxy merger models to the morphology of their real counterparts.
+These machine scores can then be used in conjunction with citizen science
+efforts to score these same models, effectively reducing the human interaction
+time needed to determine whether a particular model is "good" or "bad." Further,
+the availability of a machine scoring mechanism will open the door to
+incorporation of various machine learning algorithms to throw out bad models,
+thereby removing the need for a human-in-the-loop altogether.
+
 ## Targets<a id="targets">
 Below is a table containing the SDSSID numbers from DR7, as well as the RA and
 DEC for each of the targets. The for each target take you to the associated
