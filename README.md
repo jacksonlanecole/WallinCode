@@ -523,3 +523,7 @@ This is a python script that intends to produce realistic images of a galaxy end
 state output. As of right now, it is in the beginning stages and only calls a
 simple gaussian filter over the whole image and a median filter.
 
+# Notes
+All development is currently being done on the
+[development](https://github.com/jacksonlanecole/WallinCode/tree/development)
+branch of this fork. Check it out there!
