@@ -3,16 +3,18 @@
 # I will be adding comments at a later time!
 
 from sys import argv
-from os import system, path, mkdir, chdir
+from os import system, path, mkdir, chdir, rename, walk, listdir
 
 
 def how_many_runs():
     """
     Determine how many runs to do, return the numbers corresponding
-    to the first and last runs. first_run and last_run will be first_run + 1 if only one run is wanted.  """
+    to the first and last runs. first_run and last_run will be first_run + 1 if
+    only one run is wanted.  """
     how_many = 1000
     while how_many != 1 and how_many != 2:
-        how_many = int(input('Would you like to run one run or multiple runs? (1),(2):\n(1) one\n(2) multiple\n> '))
+        how_many = int(input('Would you like to run one run or multiple runs?\
+            (1),(2):\n(1) one\n(2) multiple\n> '))
         if how_many != 1 and how_many != 2:
             print('ERROR: Invalid input')
 
@@ -30,29 +32,46 @@ def get_init(filename, first_run, last_run):
     """Get the initial value strings from the target file"""
     init_value_strings = []
     for i, line in enumerate(open(filename, 'r')):
-        if i in range(first_run - 1, last_run - 1):
+        if i in range(first_run - 1, last_run):
             init_value_strings.append(line.split('\t')[1].strip())
 
-    run_list = range(first_run, last_run)
+    run_list = range(first_run, last_run + 1)
 
     return init_value_strings, run_list
 
 
 def wipe(argv, run_number):
+    root_name = 'output'
+    run_number = str(run_number).zfill(4)
     name = argv[1][:len(argv[1]) - len('.txt')]
-    if path.isdir('./output') == False:
-        mkdir('./output')
-        mkdir('./output/{}'.format(name))
-        mkdir('./output/{}/{}'.format(name, run_number))
+    if path.isdir('./{root}'.format(root = root_name)) == False:
+        mkdir('./{root}'.format(root = root_name))
+        mkdir('./{root}/{sdssid}'.format(root = root_name, sdssid = name))
+        mkdir('./{root}/{sdssid}/run{run_no}'.format(root = root_name,\
+                sdssid = name, run_no = run_number))
     else:
-        if path.isdir('./output/{}'.format(name)) == False:
-            mkdir('./output/{}'.format(name))
-            mkdir('./output/{}/{}'.format(name, run_number))
+        if path.isdir('./{root}/{sdssid}'.format(root = root_name,\
+                sdssid = name)) == False:
+            mkdir('./{root}/{sdssid}'.format(root = root_name,\
+                    sdssid = name))
+            mkdir('./{root}/{sdssid}/run{run_no}'.format(root = root_name,\
+                    sdssid = name, run_no = run_number))
         else:
-            if path.isdir('./output/{}/{}'.format(name, run_number)) == False:
-                mkdir('./output/{}/{}'.format(name, run_number))
+            if path.isdir('./{root}/{sdssid}/run{run_no}'\
+                    .format(root = root_name ,sdssid = name,\
+                    run_no = run_number)) == False:
+                mkdir('./{root}/{sdssid}/run{run_no}'.format(root = root_name,\
+                        sdssid = name, run_no = run_number))
 
-    system('mv ./a.* ./output/{}/{}/.'.format(name, run_number))
+    for file_name in [f for f in listdir('.') if path.isfile(f)]:
+        if (file_name.startswith('a.')):
+            extension = path.splitext(file_name)[1]
+            rename(file_name, ('./{root}/{sdssid}/run{run_no}/'
+                    '{sdssid}_{ext}_particleno.txt').format(root = root_name,
+                        sdssid = name, run_no = run_number,\
+                                ext = extension[1:]))
+
+
 
 
 def get_the_runs_and_wipe(init_value_strings, run_list):
@@ -60,15 +79,14 @@ def get_the_runs_and_wipe(init_value_strings, run_list):
     Calls ./basic_run multiple times with the correct command
     line arguments and clean up afterwards
     """
-    for value_list, run_number in zip(init_value_strings, run_list):
-        print(run_number)
+    for value_list, run_number in zip(init_value_strings, list(run_list)):
         system('./basic_run {}'.format(value_list))
         wipe(argv, run_number)
 
 
 def main(argv):
     filename = argv[1]
-    print(filename)
+    print('Target Selected: {}'.format(path.splitext(filename)[0]))
     first_run, last_run = how_many_runs()
     init_value_strings, run_list = get_init(filename, first_run, last_run)
     get_the_runs_and_wipe(init_value_strings, run_list)
