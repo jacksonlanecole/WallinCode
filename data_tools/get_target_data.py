@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 import urllib.request
 import gzip
-from os import remove
+from os import remove, mkdir, path
 
 def get_target_data(dest_path):
     _base = 'https://data.galaxyzoo.org/'
@@ -49,9 +49,11 @@ def get_target_data(dest_path):
         target_to_download = list(range(len(paths_for_url)))
         target_name = target_names
 
-    
+    if path.isdir(dest_path) == False:
+        mkdir(dest_path)
+
     for target_number, target in zip(target_to_download, target_name):
-        target_gz = path + '{}.txt.gz'.format(target_name)
+        target_gz = dest_path + '/{}.txt.gz'.format(target_name)
         urllib.request.urlretrieve(_base + paths_for_url[target_number],
                 target_gz)
         with gzip.open(target_gz, 'rb') as infile:
@@ -60,10 +62,3 @@ def get_target_data(dest_path):
                     outfile.write(line)
 
         remove(target_gz)
-
-
-    #download_url = _base + paths_for_url[target_wanted]
-    #print(download_url)
-
-
-get_target_data('input')
