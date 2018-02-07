@@ -4,6 +4,7 @@
 
 from sys import argv
 from os import system, path, mkdir, chdir, rename, walk, listdir
+from data_tools.get_target_data import get_target_data
 
 
 def how_many_runs():
@@ -40,10 +41,11 @@ def get_init(filename, first_run, last_run):
     return init_value_strings, run_list
 
 
-def wipe(argv, run_number):
+def wipe(filename, run_number):
     root_name = 'output'
     run_number = str(run_number).zfill(4)
-    name = argv[1][:len(argv[1]) - len('.txt')]
+    print(run_number)
+    name = filename[len('./input/'):-len('.txt')]
     if path.isdir('./{root}'.format(root = root_name)) == False:
         mkdir('./{root}'.format(root = root_name))
         mkdir('./{root}/{sdssid}'.format(root = root_name, sdssid = name))
@@ -67,30 +69,32 @@ def wipe(argv, run_number):
         if (file_name.startswith('a.')):
             extension = path.splitext(file_name)[1]
             rename(file_name, ('./{root}/{sdssid}/run{run_no}/'
-                    '{sdssid}_{ext}_particleno.txt').format(root = root_name,
+                    '{sdssid}-{ext}-particleno.txt').format(root = root_name,
                         sdssid = name, run_no = run_number,\
                                 ext = extension[1:]))
 
 
-
-
-def get_the_runs_and_wipe(init_value_strings, run_list):
+def get_the_runs_and_wipe(init_value_strings, run_list, filename):
     """
     Calls ./basic_run multiple times with the correct command
     line arguments and clean up afterwards
     """
     for value_list, run_number in zip(init_value_strings, list(run_list)):
         system('./basic_run {}'.format(value_list))
-        wipe(argv, run_number)
+        wipe(filename, run_number)
 
 
-def main(argv):
-    filename = argv[1]
-    print('Target Selected: {}'.format(path.splitext(filename)[0]))
+def main():
+    yes = frozenset(['yes', 'y'])
+    if (input('Do you need to download any input files?').lower() in yes):
+        get_target_data('input')
+
+    filename = './input/'+input('Copy and paste the name of a file in the input directory you want to work with:\n> ')
+    print('Target File Selected: {}'.format(path.splitext(filename)[0]))
     first_run, last_run = how_many_runs()
     init_value_strings, run_list = get_init(filename, first_run, last_run)
-    get_the_runs_and_wipe(init_value_strings, run_list)
+    get_the_runs_and_wipe(init_value_strings, run_list, filename)
 
 
 if (__name__ == '__main__'):
-    main(argv)
+    main()
