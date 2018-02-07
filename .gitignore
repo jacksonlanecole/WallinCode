@@ -9,3 +9,10 @@ gscript
 input
 testing_environment
 target_images
+target_html_table_generator
+target_images-working
+*.orig
+*.sw?
+pretty_picture
+test2.txt
+get_fit_and_process
