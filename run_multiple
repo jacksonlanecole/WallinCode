@@ -86,7 +86,7 @@ def get_the_runs_and_wipe(init_value_strings, run_list, filename):
 
 def main():
     yes = frozenset(['yes', 'y'])
-    if (input('Do you need to download any input files?').lower() in yes):
+    if (input('Do you need to download any input files? (yes/no)\n> ').lower() in yes):
         get_target_data('input')
 
     filename = './input/'+input('Copy and paste the name of a file in the input directory you want to work with:\n> ')
