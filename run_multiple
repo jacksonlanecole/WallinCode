@@ -5,6 +5,7 @@
 from sys import argv
 from os import system, path, mkdir, chdir, rename, walk, listdir
 from data_tools.get_target_data import get_target_data
+from data_tools import structure
 
 
 def how_many_runs():
@@ -36,64 +37,66 @@ def get_init(filename, first_run, last_run):
         if i in range(first_run - 1, last_run):
             init_value_strings.append(line.split('\t')[1].strip())
 
-    run_list = range(first_run, last_run + 1)
+    run_list = range(first_run, last_run)
 
     return init_value_strings, run_list
 
 
-def wipe(filename, run_number):
+def wipe(filename, run_number, n1_particles, n2_particles):
     root_name = 'output'
     run_number = str(run_number).zfill(4)
     print(run_number)
     name = filename[len('./input/'):-len('.txt')]
-    if path.isdir('./{root}'.format(root = root_name)) == False:
-        mkdir('./{root}'.format(root = root_name))
-        mkdir('./{root}/{sdssid}'.format(root = root_name, sdssid = name))
-        mkdir('./{root}/{sdssid}/run{run_no}'.format(root = root_name,\
-                sdssid = name, run_no = run_number))
-    else:
-        if path.isdir('./{root}/{sdssid}'.format(root = root_name,\
-                sdssid = name)) == False:
-            mkdir('./{root}/{sdssid}'.format(root = root_name,\
-                    sdssid = name))
-            mkdir('./{root}/{sdssid}/run{run_no}'.format(root = root_name,\
-                    sdssid = name, run_no = run_number))
-        else:
-            if path.isdir('./{root}/{sdssid}/run{run_no}'\
-                    .format(root = root_name ,sdssid = name,\
-                    run_no = run_number)) == False:
-                mkdir('./{root}/{sdssid}/run{run_no}'.format(root = root_name,\
-                        sdssid = name, run_no = run_number))
+
+    paths = [root_name, name, 'run{}'.format(run_number)]
+    target_dirs = structure(paths)
+    print(target_dirs.paths)
+    print(target_dirs.full_path)
+    target_dirs.create()
 
     for file_name in [f for f in listdir('.') if path.isfile(f)]:
         if (file_name.startswith('a.')):
             extension = path.splitext(file_name)[1]
-            rename(file_name, ('./{root}/{sdssid}/run{run_no}/'
-                    '{sdssid}-{ext}-particleno.txt').format(root = root_name,
+            rename(file_name, (target_dirs.full_path +
+                    '{sdssid}-{ext}-{particleno}.txt').format(root = root_name,
                         sdssid = name, run_no = run_number,\
-                                ext = extension[1:]))
+                                ext = extension[1:],
+                                particleno = n1_particles + n2_particles))
 
 
-def get_the_runs_and_wipe(init_value_strings, run_list, filename):
+def get_the_runs_and_wipe(init_value_strings, run_list, filename, n1_particles,
+        n2_particles):
     """
     Calls ./basic_run multiple times with the correct command
     line arguments and clean up afterwards
     """
     for value_list, run_number in zip(init_value_strings, list(run_list)):
-        system('./basic_run {}'.format(value_list))
-        wipe(filename, run_number)
+        system('./basic_run -n1 {} -n2 {} {}'.format(n1_particles, n2_particles, value_list))
+        wipe(filename, run_number, n1_particles, n2_particles)
 
 
 def main():
     yes = frozenset(['yes', 'y'])
-    if (input('Do you need to download any input files? (yes/no)\n> ').lower() in yes):
+    if (input('Do you need to download any input files? (yes/no)\n> ').lower()\
+            in yes):
         get_target_data('input')
 
-    filename = './input/'+input('Copy and paste the name of a file in the input directory you want to work with:\n> ')
+    print('These are the available input files: ')
+    for file_name in [f for f in listdir('./input/')
+            if path.isfile('./input/' + f)]:
+        print(file_name)
+
+    filename = './input/' + input('Copy and paste the name of a file in the'\
+        'input directory you want to work with:\n> ')
     print('Target File Selected: {}'.format(path.splitext(filename)[0]))
+
+    n1_particles = int(input('Enter number of particles for galaxy 1:\n> '))
+    n2_particles = int(input('Enter number of particles for galaxy 2:\n> '))
+
     first_run, last_run = how_many_runs()
     init_value_strings, run_list = get_init(filename, first_run, last_run)
-    get_the_runs_and_wipe(init_value_strings, run_list, filename)
+    get_the_runs_and_wipe(init_value_strings, run_list, filename,
+            n1_particles, n2_particles)
 
 
 if (__name__ == '__main__'):
