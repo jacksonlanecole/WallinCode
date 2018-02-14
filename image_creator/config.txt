@@ -1,0 +1,5 @@
+initial_pfile 1.000
+final_pfile 1.101
+output_image sim_image.png
+particle_number_1 1000000
+particle_number_2 1000000
