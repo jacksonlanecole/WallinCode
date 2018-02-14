@@ -6,6 +6,9 @@
 - [Target Images](#target_images)
 - [Current state](#current)
 - [run_multiple script](#run_multiple_script)
+- [data_tools](#data_tools)
+- [image_creator](#image_creator)
+- [comparison_code](#comparison_code)
 - [plotting_test](#plotting_test)
 - [make_real](#make_real)
 
@@ -472,6 +475,7 @@ pages for DR7 and DR14, as well as the Galaxy Zoo page.
 </table>
 
 ## Target Images<a id="target_images">
+**NOTE: The links above only work for targets in GROUP 10**
 Real images of the target galaxies are contained in the `target_images`
 directory. These are to be used as the reference images for comparison in testing.
 
@@ -481,7 +485,16 @@ data from SDSS DR14.
 
 
 ## Current State of Things<a id="current">
-As of right now, several lines in plotting_test have been commented out for testing. Nothing is great yet.
+Currently, [run_multiple](#run_multiple_script) is set up to complete runs of
+basic_run interactively.
+
+There is now a Python [data_tools](#data_tools) package that contains
+- structure.py: This is a general_purpose directory structure creator.
+- get_target_data.py: This is a module that scrapes the mergers.html page
+for links to the zipped target data files. This may not belong in the package,
+but as of right now that is its home.
+
+A C++ image_creator and comparison code have also been added.
 
 ## run_multiple script<a id="run_multiple_script">
 This fork of WallinCode contains run_multiple, a python3 script that runs
@@ -501,6 +514,18 @@ numbers correspond to the line number in the file. The output files are then
 organized in the following way:
 
 `./ouput/target_name(which is really the filename preceeding the extension)/run_number`
+
+## data_tools<a id="data_tools">
+This is a package that will contain any data tools that can be written as a
+general purpose tool. Right now, it contains
+- structure.py: This is a general_purpose directory structure creator.
+- get_target_data.py: This is a module that scrapes the mergers.html page
+for links to the zipped target data files. This may not belong in the package,
+but as of right now that is its home.
+
+## image_creator<a id="image_creator">
+
+## comparison_code<a id="comparison_code">
 
 ## plotting_test<a id="plotting_test">
 This is the temporary name of a python3 script that will produce 2D and 3D plots
