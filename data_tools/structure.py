@@ -1,13 +1,13 @@
 from os import path, mkdir
 
-class structure:
+class Structure:
     def __init__(self, path_list):
         '''
         Constructor for this class:
             This class takes a list as an argument that contains the
             directory structure that should be created.
-            The path tuple should have the form
-            path_tuple = ('root', 'child_1', 'child_2', ...)
+            The path list should have the form
+            path_list = ('root', 'child_1', 'child_2', ...)
         '''
         self.paths = self.get_structure_strings(path_list)
         self.full_path = './'+'/'.join(i for i in path_list) + '/'

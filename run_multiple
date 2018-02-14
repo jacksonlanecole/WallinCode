@@ -4,7 +4,7 @@
 
 from sys import argv
 from os import system, path, mkdir, chdir, rename, walk, listdir
-from data_tools import structure, get_target_data
+from data_tools import Structure, get_target_data
 
 
 def how_many_runs():
@@ -48,7 +48,7 @@ def wipe(filename, run_number, n1_particles, n2_particles):
     name = filename[len('./input/'):-len('.txt')]
 
     paths = [root_name, name, 'run{}'.format(run_number)]
-    target_dirs = structure(paths)
+    target_dirs = Structure(paths)
     print(target_dirs.paths)
     print(target_dirs.full_path)
     target_dirs.create()
