@@ -476,6 +476,7 @@ pages for DR7 and DR14, as well as the Galaxy Zoo page.
 
 ## Target Images<a id="target_images">
 **NOTE: The links above only work for targets in GROUP 10**
+
 Real images of the target galaxies are contained in the `target_images`
 directory. These are to be used as the reference images for comparison in testing.
 
