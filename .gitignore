@@ -6,6 +6,7 @@ basic_run
 fort.*
 gscript
 *dSYM
+*pyc
 input
 testing_environment
 target_images
@@ -16,3 +17,5 @@ target_images-working
 pretty_picture
 test2.txt
 get_fit_and_process
+sdssid.txt
+temp.txt
