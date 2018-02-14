@@ -1,6 +1,5 @@
 from os import path, mkdir
 
-
 class structure:
     def __init__(self, path_list):
         '''
@@ -11,6 +10,7 @@ class structure:
             path_tuple = ('root', 'child_1', 'child_2', ...)
         '''
         self.paths = self.get_structure_strings(path_list)
+        self.full_path = './'+'/'.join(i for i in path_list) + '/'
 
 
     def get_structure_strings(self, path_list):
@@ -21,10 +21,8 @@ class structure:
         return paths
 
 
-    def create(self, paths):
-        for i, path in enumerate(paths):
-            if path.isdir(path) == False:
-                for j in paths[i:]:
+    def create(self):
+        for i, path_name in enumerate(self.paths):
+            if path.isdir(path_name) == False:
+                for j in self.paths[i:]:
                     mkdir(j)
-
-main()
