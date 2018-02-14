@@ -4,8 +4,7 @@
 
 from sys import argv
 from os import system, path, mkdir, chdir, rename, walk, listdir
-from data_tools.get_target_data import get_target_data
-from data_tools import structure
+from data_tools import structure, get_target_data
 
 
 def how_many_runs():
