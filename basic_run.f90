@@ -75,10 +75,10 @@ program basic_run
     endif
   
 
-    
-    if (mod(istep, 50) == 5) then
-        call CREATE_IMAGES
-    endif
+
+!    if (mod(istep, 50) == 5) then
+!        call CREATE_IMAGES
+!    endif
   enddo
 
 !      call CREATE_IMAGES
