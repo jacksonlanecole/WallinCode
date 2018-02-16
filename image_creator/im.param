@@ -1,6 +1,6 @@
 gassian_size 15
 gaussian_weight 2.5
-gaussian_factor 6.0
+gaussian_scale 6:
 norm_value 4
 image_rows 300
 image_cols 300
