@@ -36,14 +36,14 @@ def get_init(filename, first_run, last_run):
         if i in range(first_run - 1, last_run):
             init_value_strings.append(line.split('\t')[1].strip())
 
-    run_list = range(first_run, last_run)
+    run_list = range(first_run - 1, last_run)
 
     return init_value_strings, run_list
 
 
 def wipe(filename, run_number, n1_particles, n2_particles):
     root_name = 'output'
-    run_number = str(run_number).zfill(4)
+    run_number = str(run_number + 1).zfill(4)
     print(run_number)
     name = filename[len('./input/'):-len('.txt')]
 
