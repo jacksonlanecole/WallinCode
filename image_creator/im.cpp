@@ -6,6 +6,7 @@
 #include <vector>
 #include <sys/types.h>
 #include <dirent.h>
+#include <omp.h>
 
 //#include "opencv2/utility.hpp"
 
@@ -23,10 +24,13 @@ using namespace std;
 //  Global Variables
 int particle_number_1;
 int particle_number_2;
+int thread_count;
 string particle_location;
 string initial_pfile;
 string final_pfile;
 string output_image;
+string directory;
+string ssds_directory;
 
 //  Default values
 int gaussian_size = 15;
@@ -42,19 +46,12 @@ void readConfig(ifstream& fin);
 void readParam(ifstream& fin);
 void compare(Galaxy &g1, Galaxy &g2);
 void normalize_image(const Mat &img,Mat &dest, float max, float in);
+bool removeFromDirectory(string in);
+bool not_particleFile(string in);
 
+//  In command line.  a.out config.file param.file directory
 int main(int argc, char *argv[]){
 
-    
-
-    int mrow = 300;
-    int mcol = 300;
-    int gsize = 15;
-	float weight=2.5;
-	Mat img(mrow,mcol,CV_32F);
-	Mat dest(mrow,mcol,CV_32F);
-
-    point g1c, g2c;
 
 	ifstream configfile(argv[1]);
 	readConfig(configfile);
@@ -64,9 +61,12 @@ int main(int argc, char *argv[]){
 	readParam(paramfile);
 	paramfile.close();
 
+    ssds_directory = argv[3];
+    cout << "ssds directory: " << ssds_directory.c_str() <<endl;
+
 
     vector<string> files;
-    DIR* dirp = opendir(particle_location.c_str());
+    DIR* dirp = opendir(ssds_directory.c_str());
     struct dirent * dp;
     while (( dp = readdir(dirp)) != NULL)
     {
@@ -74,51 +74,67 @@ int main(int argc, char *argv[]){
         cout << files.back()<<endl;
     }
 
+    //  filters out non run directories
+    files.erase(remove_if(files.begin(),files.end(),removeFromDirectory),files.end());
+
+    for (int i=0;i<files.size();i++)
+        cout<< files[i]<<endl;
+
+
+    return 0;
+
+    // Testing Parallel processing invironement
+    cout<< "thread count: " << thread_count <<endl;
+    #pragma omp parallel num_threads(thread_count)
+    {
+        //cout<< "I am in thread: "<< omp_get_thread_num()<<endl;
+    }
+
+    return 0;
+
+	Mat img(image_rows,image_cols,CV_32F);
+	Mat dest(image_rows,image_cols,CV_32F);
+
+
 	//  Read initial particle file.
 	ifstream ipartfile(initial_pfile.c_str());
-
-	//galaxy g1(particle_number_1, ipartfile);
-	//galaxy g2(particle_number_2, ipartfile);
-
 	Galaxy g1(particle_number_1, ipartfile);
 	Galaxy g2(particle_number_2, ipartfile);
-
 	ipartfile.close();
 
 	g1.calc_radius();
 	g2.calc_radius();
 
-    //delete g1.ipart;
-    //delete g2.ipart;
-
-
+    //  Read final particle file.
 	ifstream fpartfile(final_pfile.c_str());
 	g1.read(fpartfile);
+    g2.read(fpartfile);
+
+
+    //  Read center of 2nd galaxy
+    point g1c, g2c;
     g1c.x = g1c.y = g1c.z = 0;
-
-	g2.read(fpartfile);
     fpartfile >> g2c.x >> g2c.y >> g2c.z;
-	fpartfile.close();
-
     g1.add_center(g1c);
     g2.add_center(g2c);
 
+	fpartfile.close();
+
+    //  Adjust point so they fit in an image
 	compare(g1,g2);
+    g1.adj_points(img.cols,img.rows,gaussian_size, g1.fpart);
+    g2.adj_points(img.cols,img.rows,gaussian_size, g2.fpart);
 
-
-    g1.adj_points(img.cols,img.rows,gsize);
-    g2.adj_points(img.cols,img.rows,gsize);
-
-	g1.write(img,gsize,weight,6);
-	g2.write(img,gsize,weight,6);
-
-
+    //  Write points to image
+	g1.write(img,gaussian_size,gaussian_weight,6, g1.fpart);
+	g2.write(img,gaussian_size,gaussian_weight,6, g2.fpart);
 
     normalize_image(img,dest,g2.maxb,4);
 
 
-    g1.add_center_circle(dest);
-    g2.add_center_circle(dest);
+    //  Troubleshooting location for center of galaxy
+    //g1.add_center_circle(dest);
+    //g2.add_center_circle(dest);
 
     dest.convertTo(dest,CV_8UC3,255.0);
     imwrite(output_image,dest);
@@ -138,6 +154,8 @@ void readConfig(ifstream& fin)
             fin >> particle_location;
         else if( str.compare("initial_pfile")==0)
             fin >> initial_pfile;
+        else if( str.compare("thread_count")==0)
+            fin >> thread_count;
         else if ( str.compare("final_pfile")==0)
             fin >> final_pfile;
         else if ( str.compare("output_image")==0)
@@ -213,3 +231,14 @@ void normalize_image(const Mat &img,Mat &dest, float max, float in){
 	}
 }
 
+
+// Accompaning function for clearnDirectory
+bool removeFromDirectory(string in ){
+    return in.compare(0,3,"run")!=0;
+}
+
+bool is_particleFile(string in )
+{
+    return true;
+
+}
