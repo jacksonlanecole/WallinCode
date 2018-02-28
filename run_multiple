@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
+"""run_multiple
+Author : Jackson Cole
+Affil  : Middle Tennessee State University
+Purpose: This program's purpose is to script the interaction with the
+         original Fortran90 basic_run program to allow for multiple runs to be
+         run... as one may guess from the program name. As of right now, it only
+         runs interactively, but future modifications will allow for batch
+         processing from what we will denote as a "run_conditions" file.
 
-# I will be adding comments at a later time!
+Notes  : This script should be made executable, as it calls specifically python3
+         in the hashbang.
+"""
 
 from sys import argv
 from os import system, path, mkdir, chdir, rename, walk, listdir
@@ -8,10 +18,10 @@ from data_tools import Structure, get_target_data
 
 
 def how_many_runs():
-    """
-    Determine how many runs to do, return the numbers corresponding
+    """Determine how many runs to do, return the numbers corresponding
     to the first and last runs. first_run and last_run will be first_run + 1 if
-    only one run is wanted.  """
+    only one run is wanted.
+    """
     how_many = 1000
     while how_many != 1 and how_many != 2:
         how_many = int(input('Would you like to run one run or multiple runs?\
@@ -42,6 +52,16 @@ def get_init(filename, first_run, last_run):
 
 
 def wipe(filename, run_number, n1_particles, n2_particles):
+    """The current configuration of this program outputs ALL runfiles in the
+    root directory where run_multiple is called. This function
+    uses the Structure module in the data_tools package to create the directory
+    structure needed for organizing the data effectively.
+
+    The runfiles are the relocated to the appropriate directory in the structure
+    and are renamed with the following naming convention:
+        {sdssid}.(i, f).{number of particles in galaxy 1}
+        .{num of particles in galaxy 2}.txt
+    """
     root_name = 'output'
     run_number = str(run_number + 1).zfill(4)
     print(run_number)
@@ -65,38 +85,58 @@ def wipe(filename, run_number, n1_particles, n2_particles):
 
 def get_the_runs_and_wipe(init_value_strings, run_list, filename, n1_particles,
         n2_particles):
-    """
-    Calls ./basic_run multiple times with the correct command
+    """Calls ./basic_run multiple times with the correct command
     line arguments and clean up afterwards
     """
     for value_list, run_number in zip(init_value_strings, list(run_list)):
-        system('./basic_run -n1 {} -n2 {} {}'.format(n1_particles, n2_particles, value_list))
+        system('./basic_run -n1 {} -n2 {} {}'
+                .format(n1_particles, n2_particles, value_list))
         wipe(filename, run_number, n1_particles, n2_particles)
 
+def deal_with_args(argv):
+    if argv[1] == '-i':
+        yes = frozenset(['yes', 'y'])
+        if (input('Do you need to download any input files? (yes/no)\n> ')
+                .lower() in yes):
+            get_target_data('input')
 
-def main():
-    yes = frozenset(['yes', 'y'])
-    if (input('Do you need to download any input files? (yes/no)\n> ').lower()\
-            in yes):
-        get_target_data('input')
+        print('These are the available input files: ')
+        for file_name in [f for f in listdir('./input/')
+                if path.isfile('./input/' + f)]:
+            print(file_name)
 
-    print('These are the available input files: ')
-    for file_name in [f for f in listdir('./input/')
-            if path.isfile('./input/' + f)]:
-        print(file_name)
+        filename = './input/' + input('Copy and paste the name of a file in the'\
+            'input directory you want to work with:\n> ')
+        print('Target File Selected: {}'.format(path.splitext(filename)[0]))
 
-    filename = './input/' + input('Copy and paste the name of a file in the'\
-        'input directory you want to work with:\n> ')
-    print('Target File Selected: {}'.format(path.splitext(filename)[0]))
+        n1_particles = int(input('Enter number of particles for galaxy 1:\n> '))
+        n2_particles = int(input('Enter number of particles for galaxy 2:\n> '))
 
-    n1_particles = int(input('Enter number of particles for galaxy 1:\n> '))
-    n2_particles = int(input('Enter number of particles for galaxy 2:\n> '))
+        first_run, last_run = how_many_runs()
+        init_value_strings, run_list = get_init(filename, first_run, last_run)
+        get_the_runs_and_wipe(init_value_strings, run_list, filename,
+                n1_particles, n2_particles)
 
-    first_run, last_run = how_many_runs()
-    init_value_strings, run_list = get_init(filename, first_run, last_run)
-    get_the_runs_and_wipe(init_value_strings, run_list, filename,
-            n1_particles, n2_particles)
+    elif argv[1] == '-b':
+        print('This will handle batch processing, but is not completed '\
+                'as of yet.')
+
+    else:
+        print('Option not recognized')
+
+
+
+def main(argv):
+    if len(argv) > 1:
+        deal_with_args(argv)
+
+    else:
+        print('run_multiple accepts the following command line options:\n')
+        print('    -i : run interactively\n'\
+              '    -b : batch process (not available yet)')
+        print()
+        print('NOTE: -i and -b are mutually exclusive.')
 
 
 if (__name__ == '__main__'):
-    main()
+    main(argv)
