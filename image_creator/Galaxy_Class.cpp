@@ -56,12 +56,12 @@ void Galaxy::read(ifstream& infile){
 
 
 
-void Galaxy::write(Mat &img, int gsize, float weight, int pin){
+void Galaxy::write(Mat &img, int gsize, float weight, int pin, point *pts){
 
 	maxb=0;
 	for (int i=0;i<npart;i++){
-		int row = int(fpart[i].y);
-		int col = int(fpart[i].x);
+		int row = int(pts[i].y);
+		int col = int(pts[i].x);
 		for (int k=0;k<gsize;k++){
 			for (int l=0;l<gsize;l++){
 				float pbright = exp( - pin* ipart[i].r / maxr);
@@ -72,6 +72,15 @@ void Galaxy::write(Mat &img, int gsize, float weight, int pin){
 					maxb = img.at<float>(row+k-gsize/2,col+l-gsize/2);
 			}
 		}
+	}
+}
+
+
+
+void Galaxy::simple_write(Mat &img, point *pts){
+
+	for (int i=0;i<npart;i++){
+		img.at<float>(pts[i].y, pts[i].x)+=1;
 	}
 }
 
@@ -97,7 +106,7 @@ void Galaxy::calc_radius(){
 }
 
 
-void Galaxy::adj_points(int xsize, int ysize, int gsize){
+void Galaxy::adj_points(int xsize, int ysize, int gsize, point *pts){
 
         int scale_factor;
 
@@ -114,8 +123,8 @@ void Galaxy::adj_points(int xsize, int ysize, int gsize){
 
         for (int i=0; i<npart; i++)
         {
-            fpart[i].x= (fpart[i].x-xmin)*scale_factor + gsize/2.0;
-            fpart[i].y= ysize-((fpart[i].y-ymin)*scale_factor + gsize/2.0);
+            pts[i].x= (pts[i].x-xmin)*scale_factor + gsize/2.0;
+            pts[i].y= ysize-((pts[i].y-ymin)*scale_factor + gsize/2.0);
         }
 
 }
