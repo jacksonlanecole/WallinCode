@@ -31,6 +31,9 @@ Below is a table containing the SDSSID numbers from DR7, as well as the RA and
 DEC for each of the targets. The for each target take you to the associated
 pages for DR7 and DR14, as well as the Galaxy Zoo page.
 
+<font color="red">THE LINKS ARE INCORRECT AS OF RIGHT NOW! We'll be
+fixing that shortly.</font>
+
 <table>
 <tr>
 	<th>SDSSID</th>
@@ -475,8 +478,6 @@ pages for DR7 and DR14, as well as the Galaxy Zoo page.
 </table>
 
 ## Target Images<a id="target_images">
-**NOTE: The links above only work for targets in GROUP 10**
-
 Real images of the target galaxies are contained in the `target_images`
 directory. These are to be used as the reference images for comparison in testing.
 
