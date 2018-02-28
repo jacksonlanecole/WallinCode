@@ -2,18 +2,20 @@ from os import path, mkdir
 
 class Structure:
     def __init__(self, path_list):
-        '''
-        Constructor for this class:
+        """Constructor for this class:
             This class takes a list as an argument that contains the
             directory structure that should be created.
             The path list should have the form
-            path_list = ('root', 'child_1', 'child_2', ...)
-        '''
+            path_list = ['root', 'child_1', 'child_2', ...]
+        """
         self.paths = self.get_structure_strings(path_list)
         self.full_path = './'+'/'.join(i for i in path_list) + '/'
 
 
     def get_structure_strings(self, path_list):
+        """Return the paths for each individual level in the directory
+        structure.
+        """
         paths = []
         for i in range(len(path_list)):
             paths.append('./' + '/'.join(j for j in path_list[:i+1]))
@@ -22,6 +24,9 @@ class Structure:
 
 
     def create(self):
+        """Actually create the each of the directories in the
+        appropriate structure.
+        """
         for i, path_name in enumerate(self.paths):
             if path.isdir(path_name) == False:
                 for j in self.paths[i:]:
