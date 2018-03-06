@@ -21,10 +21,10 @@ using namespace cv;
 
 
 struct point{
-	float r,x,y,z,vx,vy,vz;
+	double r,x,y,z,vx,vy,vz;
 	int npart;
 
-	void calc_radius(float cx,float cy,float cz){
+	void calc_radius(double cx,double cy,double cz){
 		r = sqrt((x-cx)*(x-cx) + (y-cy)*(y-cy) + (z-cz)*(z-cz));
 	}
 
@@ -34,8 +34,8 @@ struct point{
 class Galaxy
 {
 public:
-	float bx,by,bz,fx,fy,fz;  // beginning and final x,y,z coordinates;
-    float maxr, xmin, xmax, ymin, ymax,maxb;
+	double ix,iy,iz,fx,fy,fz;  // beginning and final x,y,z coordinates;
+    double maxr, xmin, xmax, ymin, ymax,maxb;
 	int npart;
 	point *ipart, *fpart;
 
@@ -44,9 +44,9 @@ public:
 	void read(ifstream& infile,int part, char state);
 	void write(Mat &img, int gsize, float weight, int pin, point *pts);
     void simple_write( Mat &img, point *pts);
-	void calc_radius();
+	void calc_values();
 	void adj_points(int xsize, int ysize, int gsize, point *pts);
-	void add_center(float x, float y, float z, char state);
+	void add_center(double x, double y, double z, char state);
 	void add_center_circle(Mat &img);
 
 };

@@ -20,9 +20,10 @@ using namespace cv;
 
 
 Galaxy::Galaxy(){
-	maxr=maxb=bx=by=bz=fx=fy=fz=0;
-    xmin = ymin = -2.5;  // fixed max and min
-    xmax = ymax = 2.5;
+	maxr=maxb=ix=iy=iz=fx=fy=fz=0;
+    xmax = xmin = ymax = ymin = 0;
+    //xmin = ymin = -2.5;  // fixed max and min
+    //xmax = ymax = 2.5;
 }
 
 void Galaxy::read(ifstream& infile, int part, char state){
@@ -44,7 +45,7 @@ void Galaxy::read(ifstream& infile, int part, char state){
         }
     }
     else
-        printf("Galaxy read particle state unidetnified\n");
+        printf("Galaxy read particle state unidentified\n");
 }
 
 
@@ -78,29 +79,22 @@ void Galaxy::simple_write(Mat &img, point *pts){
 }
 
 
-void Galaxy::calc_radius(){
+void Galaxy::calc_values(){
 
-    //  centers now obtained, calculation no longer needed.
-         // Calculate center of galaxies originally by averaging points
-	/*
-    for (int i=0;i<npart;i++){
-		x += ipart[i].x;
-		y += ipart[i].y;
-		z += ipart[i].z;
-	}
-	x /= npart;
-	y /= npart;
-	z /= npart;
-
-    */
-
-
-
-        //  calculate initial distance from center for each point
 	for (int i=0;i<npart;i++){
-		ipart[i].calc_radius(bx,by,bz);
+		ipart[i].calc_radius(ix,iy,iz);  // calc radii from cent of galaxies
+
+        //  Find max and min x/y values
 		if (ipart[i].r > maxr)
 			maxr = ipart[i].r;
+        if (fpart[i].x > xmax)
+            xmax = fpart[i].x;
+        if (fpart[i].y > ymax)
+            ymax = fpart[i].y;
+        if (fpart[i].x < xmin)
+            xmin = fpart[i].x;
+        if (fpart[i].y < ymin)
+            ymin = fpart[i].y;
 	}
 }
 
@@ -130,12 +124,12 @@ void Galaxy::adj_points(int xsize, int ysize, int gsize, point *pts){
 
 
 
-void Galaxy::add_center(float x, float y, float z, char state){
+void Galaxy::add_center(double x, double y, double z, char state){
     //  State is beginning or final state of galaxy;
-    if (state == 'b'){
-        bx = x;
-        by = y;
-        bz = z;
+    if (state == 'i'){
+        ix = x;
+        iy = y;
+        iz = z;
     }
     else if (state == 'f'){
         fx = x;

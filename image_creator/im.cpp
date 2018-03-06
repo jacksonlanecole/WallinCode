@@ -91,13 +91,18 @@ int main(int argc, char *argv[]){
             //  Variables
             string myDir = ssds_directory + mainDir[i1] + '/';
 
+            Galaxy g1,g2;
+
             Mat img(image_rows,image_cols,CV_32F);
 	        Mat dest(image_rows,image_cols,CV_32F);
-            string fpartFileName, ipartFileName, sdssName;
+            string fpartFileName, ipartFileName, sdssName, tempStr;
             int npart1, npart2;
+            double x,y,z;
+
+            stringstream strm1, strm2;
 
 
-            printf("T: %d  dir: %s\n",mynum,myDir.c_str());
+            //printf("T: %d  dir: %s\n",mynum,myDir.c_str());
 
             //  Get files in run directory
             vector<string> runFiles;
@@ -118,7 +123,8 @@ int main(int argc, char *argv[]){
                     fpartFileName = runFiles[i];
             }
 
-            //  Parse data from particle files
+            //  Parse data from particle file name
+
             size_t pos[4];
             pos[0] = ipartFileName.find(".");
             pos[1] = ipartFileName.find(".",pos[0]+1);
@@ -126,17 +132,66 @@ int main(int argc, char *argv[]){
             pos[3] = ipartFileName.find(".",pos[2]+1);
 
             sdssName = ipartFileName.substr(0,pos[0]);
-            
 
+            tempStr = ipartFileName.substr(pos[1]+1,pos[2]-pos[1]-1);
+            strm1 << tempStr;
+            strm1 >> npart1;
+            //printf("String 1: %s  int: %d\n", tempStr.c_str(), npart1);
 
-            printf("1 Progress!  sdss: %s \n",sdssName.c_str());
-
-
-
+            tempStr = ipartFileName.substr(pos[2]+1,pos[3]-pos[2]-1);
+            strm2 << tempStr;
+            strm2 >> npart2;
+            //printf("String 2: %s  int: %d\n", tempStr.c_str(), npart2);
 
             //  Read particle files
-            //  attempt to parallize later...
-                        
+            ipartFileName = myDir + ipartFileName;
+            fpartFileName = myDir + fpartFileName;
+
+            ifstream ipartstream(ipartFileName.c_str());
+            g1.read(ipartstream,npart1,'i');
+            g2.read(ipartstream,npart2,'i');
+            ipartstream >> x >> y >> z;  // Grabbing final center of g2
+            g2.add_center(x,y,z,'i');
+            //printf("run: %d  x:%f  y:%f  z:%f  \n",i1,x,y,z);
+            ipartstream.close();
+
+            ifstream fpartstream(fpartFileName.c_str());
+            g1.read(fpartstream,npart1,'f');
+            g2.read(fpartstream,npart2,'f');
+            fpartstream >> x >> y >> z;
+            g2.add_center(x,y,z,'f');
+            fpartstream.close();
+
+            g1.calc_values();
+            g2.calc_values();
+            compare(g1,g2);
+
+            printf("TS: 7 \n");
+
+
+            //  Adjust point values to fit on image
+            g1.adj_points(img.cols,img.rows,gaussian_size, g1.fpart);
+            g2.adj_points(img.cols,img.rows,gaussian_size, g2.fpart);
+
+            //  Write points to image
+	        g1.write(img,gaussian_size,gaussian_weight,6, g1.fpart);
+	        g2.write(img,gaussian_size,gaussian_weight,6, g2.fpart);
+
+            normalize_image(img,dest,g2.maxb,4);
+
+
+            //  Troubleshooting location for center of galaxy
+            //g1.add_center_circle(dest);
+            //g2.add_center_circle(dest);
+
+            string picName = myDir + "pic.png";
+
+            dest.convertTo(dest,CV_8UC3,255.0);
+            imwrite(picName,dest);
+
+
+
+
         }
     }
 
@@ -145,29 +200,6 @@ int main(int argc, char *argv[]){
     /*
 
 
-	//  Read initial particle file.
-	ifstream ipartfile(initial_pfile.c_str());
-	Galaxy g1(particle_number_1, ipartfile);
-	Galaxy g2(particle_number_2, ipartfile);
-	ipartfile.close();
-
-	g1.calc_radius();
-	g2.calc_radius();
-
-    //  Read final particle file.
-	ifstream fpartfile(final_pfile.c_str());
-	g1.read(fpartfile);
-    g2.read(fpartfile);
-
-
-    //  Read center of 2nd galaxy
-    point g1c, g2c;
-    g1c.x = g1c.y = g1c.z = 0;
-    fpartfile >> g2c.x >> g2c.y >> g2c.z;
-    g1.add_center(g1c);
-    g2.add_center(g2c);
-
-	fpartfile.close();
 
     //  Adjust point so they fit in an image
 	compare(g1,g2);
