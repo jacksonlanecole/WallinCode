@@ -71,29 +71,59 @@ int main(int argc, char *argv[]){
     while (( dp = readdir(dirp)) != NULL)
     {
         files.push_back(dp->d_name);
-        cout << files.back()<<endl;
+        //cout << files.back()<<endl;
     }
 
     //  filters out non run directories
     files.erase(remove_if(files.begin(),files.end(),removeFromDirectory),files.end());
 
+    cout<< "files in main directory\n";
     for (int i=0;i<files.size();i++)
         cout<< files[i]<<endl;
 
-
-    return 0;
-
-    // Testing Parallel processing invironement
+    // creating Parallel processing threads
     cout<< "thread count: " << thread_count <<endl;
     #pragma omp parallel num_threads(thread_count)
     {
-        //cout<< "I am in thread: "<< omp_get_thread_num()<<endl;
+        int mynum = omp_get_thread_num();
+        //printf("I am in thread: %d\n",mynum);
+        //cout<< "I am in thread: "<< mynum <<endl;
+
+        // for loop is shared between all threads
+        #pragma omp for
+        for(int i=0; i<files.size();i++){
+
+            string myDir = ssds_directory + files[i] + '/';
+            printf("T: %d  dir: %s\n",mynum,myDir.c_str());
+
+            //  Look at particle title and sort accordingly
+            vector<string> mydir;
+            DIR* mydirp = opendir(myDir.c_str());
+            struct dirent * mydp;
+            while (( mydp = readdir(mydirp)) != NULL)
+            {
+                string temp = mydp->d_name;
+                printf("-step: %d -file name: %s",i,temp.c_str());
+                //files.push_back(mydp->d_name);
+                //cout << files.back()<<endl;
+            }
+
+    //  filters out non run directories
+
+
+            Mat img(image_rows,image_cols,CV_32F);
+	        Mat dest(image_rows,image_cols,CV_32F);
+
+
+        }
     }
 
     return 0;
 
-	Mat img(image_rows,image_cols,CV_32F);
-	Mat dest(image_rows,image_cols,CV_32F);
+
+    Mat img(image_rows,image_cols,CV_32F);
+    Mat dest(image_rows,image_cols,CV_32F);
+
 
 
 	//  Read initial particle file.

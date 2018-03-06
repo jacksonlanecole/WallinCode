@@ -41,12 +41,13 @@ public:
 	Galaxy(int part, ifstream& initpart);
 
 	void read(ifstream& infile);
-	void write(Mat &img, int gsize, float weight, int pin);
+	void write(Mat &img, int gsize, float weight, int pin, point *pts);
+    void simple_write( Mat &img, point *pts);
 	void calc_radius();
-	void adj_points(int xsize, int ysize, int gsize);
+	void adj_points(int xsize, int ysize, int gsize, point *pts);
 	void add_center(point center);
 	void add_center_circle(Mat &img);
 
 };
- 
+
 #endif
