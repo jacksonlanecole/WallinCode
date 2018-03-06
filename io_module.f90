@@ -2,6 +2,8 @@
 
 
   use parameters_module
+  use iso_c_binding
+
 
   implicit none
 
@@ -34,9 +36,11 @@ contains
     real (kind=8), dimension(:,:), intent(inout) :: x0
     integer (kind=4), intent(in) :: n, n1, n2
     real (kind=8), intent(in) :: mass1, mass2, eps1, eps2, time
-    logical, intent(in) :: header_on
+    logical, intent(inout) :: header_on
     integer (kind=4) :: i
     real (kind=8), dimension(6) :: cm_sys
+
+    header_on = .false.           ! Ensures no header is present at top
 
 
    if( header_on) then
@@ -59,6 +63,41 @@ contains
 
    return
   end subroutine output_particles
+
+
+
+!-------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------
+! WORK IN PROGRESS:
+! >> In the future, we would like to be able to read out directly from
+!interface
+!    subroutine out_to_cpp(unit, x0, n, n1, n2, flag) bind ( c )
+!        use iso_c_binding
+!        implicit none
+!        integer  (kind=4), intent(in) :: unit
+!        real     (kind=8), dimension(:,:), intent(inout) :: x0
+!        integer  (kind=4) :: i
+!        real     (kind=8), dimension(6) :: cm_sys
+!
+!        real      ( c_double ), dimension(:,:), intent(out) :: xOutI
+!        real      ( c_double ), dimension(:,:), intent(out) :: xOutF
+!        integer   ( c_int ), intent(inout) :: n, n1, n2
+!        character ( c_char ):: flag
+!
+!        cm_sys = mass2 * x0(n,:) / (mass1 + mass2)
+!        cm_sys = 0.0d0
+!        do i = 1, n
+!            xOutI(i,:) = x0(i,:) - cm_sys
+!        enddo
+!
+!        !do i = 1, n
+!        !    write(unit,'(6e16.8)')  x0(i,:) - cm_sys
+!        !enddo
+!
+!        return
+!
+!    end subroutine out_to_cpp
+!end interface
 !----------------------------------------------------------------
 !
   subroutine create_gnuplot_script(x0, iout)
