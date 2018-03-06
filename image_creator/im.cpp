@@ -47,12 +47,12 @@ void readParam(ifstream& fin);
 void compare(Galaxy &g1, Galaxy &g2);
 void normalize_image(const Mat &img,Mat &dest, float max, float in);
 bool removeFromDirectory(string in);
-bool not_particleFile(string in);
+bool notParticleFile(string in);
 
 //  In command line.  a.out config.file param.file directory
 int main(int argc, char *argv[]){
 
-
+    //  Read config and parameter file
 	ifstream configfile(argv[1]);
 	readConfig(configfile);
 	configfile.close();
@@ -65,65 +65,84 @@ int main(int argc, char *argv[]){
     cout << "ssds directory: " << ssds_directory.c_str() <<endl;
 
 
-    vector<string> files;
+    vector<string> mainDir;
     DIR* dirp = opendir(ssds_directory.c_str());
     struct dirent * dp;
     while (( dp = readdir(dirp)) != NULL)
-    {
-        files.push_back(dp->d_name);
-        //cout << files.back()<<endl;
-    }
+        mainDir.push_back(dp->d_name);
 
     //  filters out non run directories
-    files.erase(remove_if(files.begin(),files.end(),removeFromDirectory),files.end());
+    mainDir.erase(remove_if(mainDir.begin(),mainDir.end(),removeFromDirectory),mainDir.end());
 
     cout<< "files in main directory\n";
-    for (int i=0;i<files.size();i++)
-        cout<< files[i]<<endl;
+    for (int i=0;i<mainDir.size();i++)
+        cout<< mainDir[i]<<endl;
 
     // creating Parallel processing threads
     cout<< "thread count: " << thread_count <<endl;
     #pragma omp parallel num_threads(thread_count)
     {
         int mynum = omp_get_thread_num();
-        //printf("I am in thread: %d\n",mynum);
-        //cout<< "I am in thread: "<< mynum <<endl;
 
         // for loop is shared between all threads
         #pragma omp for
-        for(int i=0; i<files.size();i++){
+        for(int i1=0; i1<mainDir.size();i1++){
 
-            string myDir = ssds_directory + files[i] + '/';
-            printf("T: %d  dir: %s\n",mynum,myDir.c_str());
-
-            //  Look at particle title and sort accordingly
-            vector<string> mydir;
-            DIR* mydirp = opendir(myDir.c_str());
-            struct dirent * mydp;
-            while (( mydp = readdir(mydirp)) != NULL)
-            {
-                string temp = mydp->d_name;
-                printf("-step: %d -file name: %s",i,temp.c_str());
-                //files.push_back(mydp->d_name);
-                //cout << files.back()<<endl;
-            }
-
-    //  filters out non run directories
-
+            //  Variables
+            string myDir = ssds_directory + mainDir[i1] + '/';
 
             Mat img(image_rows,image_cols,CV_32F);
 	        Mat dest(image_rows,image_cols,CV_32F);
+            string fpartFileName, ipartFileName, sdssName;
+            int npart1, npart2;
 
 
+            printf("T: %d  dir: %s\n",mynum,myDir.c_str());
+
+            //  Get files in run directory
+            vector<string> runFiles;
+            DIR* mydirp = opendir(myDir.c_str());
+            struct dirent * mydp;
+            while (( mydp = readdir(mydirp)) != NULL)
+                runFiles.push_back(mydp->d_name);
+
+
+            // find particle files
+            for (int i; i<runFiles.size();i++)
+            {
+                size_t foundi = runFiles[i].find(".i.");
+                size_t foundf = runFiles[i].find(".f.");
+                if (foundi != string::npos)
+                    ipartFileName = runFiles[i];
+                else if ( foundf != string::npos)
+                    fpartFileName = runFiles[i];
+            }
+
+            //  Parse data from particle files
+            size_t pos[4];
+            pos[0] = ipartFileName.find(".");
+            pos[1] = ipartFileName.find(".",pos[0]+1);
+            pos[2] = ipartFileName.find(".",pos[1]+1);
+            pos[3] = ipartFileName.find(".",pos[2]+1);
+
+            sdssName = ipartFileName.substr(0,pos[0]);
+            
+
+
+            printf("1 Progress!  sdss: %s \n",sdssName.c_str());
+
+
+
+
+            //  Read particle files
+            //  attempt to parallize later...
+                        
         }
     }
 
     return 0;
 
-
-    Mat img(image_rows,image_cols,CV_32F);
-    Mat dest(image_rows,image_cols,CV_32F);
-
+    /*
 
 
 	//  Read initial particle file.
@@ -170,6 +189,8 @@ int main(int argc, char *argv[]){
     imwrite(output_image,dest);
 
     return 0;
+
+    */
 
 
 }
@@ -267,8 +288,15 @@ bool removeFromDirectory(string in ){
     return in.compare(0,3,"run")!=0;
 }
 
-bool is_particleFile(string in )
+bool notParticleFile(string in )
 {
-    return true;
+    //  Search for flags in name signifying it's a particle file
+    size_t foundi = in.find(".i.");
+    size_t foundf = in.find(".f.");
+
+    if ( (foundi == string::npos) && (foundf == string::npos)) // string not found
+        return true;
+    else
+        return false;
 
 }

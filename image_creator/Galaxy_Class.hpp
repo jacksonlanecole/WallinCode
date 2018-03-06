@@ -34,18 +34,19 @@ struct point{
 class Galaxy
 {
 public:
-	float x,y,z, maxr, xmin, xmax, ymin, ymax,maxb;
+	float bx,by,bz,fx,fy,fz;  // beginning and final x,y,z coordinates;
+    float maxr, xmin, xmax, ymin, ymax,maxb;
 	int npart;
 	point *ipart, *fpart;
 
-	Galaxy(int part, ifstream& initpart);
+    Galaxy();
 
-	void read(ifstream& infile);
+	void read(ifstream& infile,int part, char state);
 	void write(Mat &img, int gsize, float weight, int pin, point *pts);
     void simple_write( Mat &img, point *pts);
 	void calc_radius();
 	void adj_points(int xsize, int ysize, int gsize, point *pts);
-	void add_center(point center);
+	void add_center(float x, float y, float z, char state);
 	void add_center_circle(Mat &img);
 
 };
