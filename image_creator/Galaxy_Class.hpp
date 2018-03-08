@@ -40,6 +40,7 @@ public:
 	point *ipart, *fpart;
 
     Galaxy();
+    ~Galaxy();
 
 	void read(ifstream& infile,int part, char state);
 	void write(Mat &img, int gsize, float weight, int pin, point *pts);

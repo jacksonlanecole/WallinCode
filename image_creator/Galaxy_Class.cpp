@@ -26,16 +26,21 @@ Galaxy::Galaxy(){
     //xmax = ymax = 2.5;
 }
 
+Galaxy::~Galaxy(){
+    delete ipart;
+    delete fpart;
+
+}
+
 void Galaxy::read(ifstream& infile, int part, char state){
     npart = part;
     if ( state == 'i' )
     {
         ipart = (point *) malloc(npart*sizeof(point));
-
-       for (int i=0;i<npart;i++)
-       {
-        infile>>ipart[i].x>>ipart[i].y>>ipart[i].z>>ipart[i].vx>>ipart[i].vy>>ipart[i].vz;
-       }
+        for (int i=0;i<npart;i++)
+        {
+            infile>>ipart[i].x>>ipart[i].y>>ipart[i].z>>ipart[i].vx>>ipart[i].vy>>ipart[i].vz;
+        }
     }
     else if ( state == 'f' )
     {
