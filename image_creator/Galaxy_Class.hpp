@@ -40,7 +40,6 @@ public:
 	point *ipart, *fpart;
 
     Galaxy();
-    ~Galaxy();
 
 	void read(ifstream& infile,int part, char state);
 	void write(Mat &img, int gsize, float weight, int pin, point *pts);
@@ -49,7 +48,7 @@ public:
 	void adj_points(int xsize, int ysize, int gsize, point *pts);
 	void add_center(double x, double y, double z, char state);
 	void add_center_circle(Mat &img);
-
+    void delMem();
 };
 
 #endif

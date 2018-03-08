@@ -26,10 +26,11 @@ Galaxy::Galaxy(){
     //xmax = ymax = 2.5;
 }
 
-Galaxy::~Galaxy(){
+void Galaxy::delMem(){
+    //  ***NOTE***  If galaxy is created but no memory is allocated
+    //              calling this deconstructor will cause a seg fault
     delete ipart;
     delete fpart;
-
 }
 
 void Galaxy::read(ifstream& infile, int part, char state){
