@@ -69,7 +69,7 @@ int main(int argc, char *argv[]){
 
 
     //  Variables
-    Galaxy g1,g2;
+
     Mat img(image_rows,image_cols,CV_32F);
     Mat dest(image_rows,image_cols,CV_32F);
     string fpartFileName, ipartFileName, sdssName, infoName, picName, tempStr;
@@ -77,11 +77,12 @@ int main(int argc, char *argv[]){
     ifstream infoFileIn, ipartFile, fpartFile;
     ofstream infoFileOut;
 
+    Galaxy g1,g2;
     int npart1, npart2;
     double x,y,z;
     bool picFound = false, infoFound = false;
 
-    printf("runDir: %s\n",runDir.c_str());
+    //printf("runDir: %s\n",runDir.c_str());
 
 
     //  Search run Directory for files
@@ -156,16 +157,22 @@ int main(int argc, char *argv[]){
     {
         if( runFiles[i].compare(picName)==0){
             picFound = true;
+            printf("Image with given %s already present in dir %s.\n",paramName.c_str(), runDir.c_str());
         }
     }
 
-    if (!picFound || !infoFound){
+    if (!picFound || !infoFound)
+    {
 
         //printf("Pic not found.  Creating\n");
         picName = runDir + picName;
 
         ipartFileName = runDir + ipartFileName;
         fpartFileName = runDir + fpartFileName;
+
+
+
+
 
 
         //  Read Initial particle file
@@ -240,12 +247,15 @@ int main(int argc, char *argv[]){
         //printf("Writing image to %s\n",picName.c_str());
         dest.convertTo(dest,CV_8UC3,255.0);
         imwrite(picName,dest);
-        //printf("wrote image to memory\n");
+
+        //  Delete memory from Galaxies
+        g1.delMem();
+        g2.delMem();
 
         //  Write to info file about pixel centers
         infoFileOut << paramName << ' ' << int(g1.fx) << ' ' << int(g1.fy) << ' ' << int(g2.fx) << ' ' << int(g2.fy) << endl;
         infoFileOut.close();
-        //printf("appended param to info file\n");
+        printf("appended param to info file\n");
 
     }
 
