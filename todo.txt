@@ -15,6 +15,8 @@ Want to do
 - Develope script running entire process.  JSPAM -> Image Creation -> Rate
 - Evolve variables
 - Account for background noise in target image in absolute difference comparison code.
+- Optimize parallel processing in image creation code
+- Find optimal parameters in image creation code
 
 Thesis
 - Write Methods section
