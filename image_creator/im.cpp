@@ -1,14 +1,14 @@
+#include <unistd.h>
 #include <math.h>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <cstdlib>
 #include <string>
 #include <vector>
 #include <sys/types.h>
 #include <dirent.h>
 #include <omp.h>
-
-//#include "opencv2/utility.hpp"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -22,203 +22,247 @@ using namespace std;
 
 
 //  Global Variables
-int particle_number_1;
-int particle_number_2;
-int thread_count;
-string particle_location;
-string initial_pfile;
-string final_pfile;
-string output_image;
-string directory;
-string ssds_directory;
+int thread_count = 1;
+string sdss_directory;
 
 //  Default values
+string paramName = "param0001";
 int gaussian_size = 15;
 float gaussian_weight = 2.5;
 float gaussian_factor = 6;
 int norm_value = 4;
-int image_rows = 300;
-int image_cols = 300;
+int image_rows = 1000;
+int image_cols = 1000;
 
 
 //  Function Prototypes
-void readConfig(ifstream& fin);
 void readParam(ifstream& fin);
 void compare(Galaxy &g1, Galaxy &g2);
 void normalize_image(const Mat &img,Mat &dest, float max, float in);
 bool removeFromDirectory(string in);
-bool notParticleFile(string in);
+void readInfoFile(ifstream& fin, string &sdssName, int &npart1, int &npart2);
 
-//  In command line.  a.out config.file param.file directory
+//  In command line.
+//  ./a.out param.file sdss_directory
 int main(int argc, char *argv[]){
 
-    //  Read config and parameter file
-	ifstream configfile(argv[1]);
-	readConfig(configfile);
-	configfile.close();
+    //  Read directory and parameter file
+    string runDir = argv[1];
 
-	ifstream paramfile(argv[2]);
+    //  Add '/' to directory string if not already present
+    string temp = runDir.substr(runDir.size()-1,1);
+    if (temp != "/")
+        runDir = runDir + '/';
+
+
+    // Open parameter file and save name
+    string tempParam = argv[2];
+	ifstream paramfile(tempParam.c_str());
+    if (paramfile.fail())
+        printf("Parameter file not found.  Using default param0001\n");
+    else {
+        size_t find = tempParam.find("param");
+        paramName = tempParam.substr(find,9);
+    }
 	readParam(paramfile);
 	paramfile.close();
 
-    ssds_directory = argv[3];
-    cout << "ssds directory: " << ssds_directory.c_str() <<endl;
+
+    //  Variables
+
+    Mat img(image_rows,image_cols,CV_32F);
+    Mat dest(image_rows,image_cols,CV_32F);
+    string fpartFileName, ipartFileName, sdssName, infoName, picName, tempStr;
+    stringstream strm1, strm2;
+    ifstream infoFileIn, ipartFile, fpartFile;
+    ofstream infoFileOut;
+
+    Galaxy g1,g2;
+    int npart1, npart2;
+    double x,y,z;
+    bool picFound = false, infoFound = false;
+
+    //printf("runDir: %s\n",runDir.c_str());
 
 
-    vector<string> mainDir;
-    DIR* dirp = opendir(ssds_directory.c_str());
+    //  Search run Directory for files
+    vector<string> runFiles;
+    DIR* dirp = opendir(runDir.c_str());
     struct dirent * dp;
     while (( dp = readdir(dirp)) != NULL)
-        mainDir.push_back(dp->d_name);
+        runFiles.push_back(dp->d_name);
 
-    //  filters out non run directories
-    mainDir.erase(remove_if(mainDir.begin(),mainDir.end(),removeFromDirectory),mainDir.end());
+    //  filter directory if needed
+    //mainDir.erase(remove_if(mainDir.begin(),mainDir.end(),removeFromDirectory),mainDir.end());
 
-    cout<< "files in main directory\n";
-    for (int i=0;i<mainDir.size();i++)
-        cout<< mainDir[i]<<endl;
 
-    // creating Parallel processing threads
-    cout<< "thread count: " << thread_count <<endl;
-    #pragma omp parallel num_threads(thread_count)
+    // find files
+    for (unsigned int i=0; i<runFiles.size();i++)
     {
-        int mynum = omp_get_thread_num();
+        size_t foundi = runFiles[i].find(".i.");
+        size_t foundf = runFiles[i].find(".f.");
+        if ( foundi != string::npos ){
+            ipartFileName = runFiles[i];
+            //printf("Found i file! %s\n",ipartFileName.c_str());
+        }
+        else if ( foundf != string::npos){
+            fpartFileName = runFiles[i];
+            //printf("Found f file! %s\n",fpartFileName.c_str());
+        }
+        else if ( runFiles[i].compare("info.txt") == 0 ) {
+           infoName = runFiles[i];
+           infoFound = true;
+           //printf("InfoName... %s",infoName.c_str());
+        }
+        else
+            ;//printf("%s was not i or f\n",runFiles[i].c_str());
+    }
+    //printf("Found files\n");
 
-        // for loop is shared between all threads
-        #pragma omp for
-        for(int i1=0; i1<mainDir.size();i1++){
+    infoName = runDir + "info.txt";
+    //printf("Info dir/name %s\n",infoName.c_str());
+    if (infoFound){
+        infoFileIn.open(infoName.c_str());
+        readInfoFile(infoFileIn, sdssName, npart1, npart2);
+        infoFileIn.close();
+        //printf("Found infoFile %d %d \n",npart1,npart2);
+    }
+    else {
 
-            //  Variables
-            string myDir = ssds_directory + mainDir[i1] + '/';
+        //  Parse data from particle file name
+        size_t pos[4];
+        pos[0] = ipartFileName.find(".");
+        pos[1] = ipartFileName.find(".",pos[0]+1);
+        pos[2] = ipartFileName.find(".",pos[1]+1);
+        pos[3] = ipartFileName.find(".",pos[2]+1);
 
-            Mat img(image_rows,image_cols,CV_32F);
-	        Mat dest(image_rows,image_cols,CV_32F);
-            string fpartFileName, ipartFileName, sdssName;
-            int npart1, npart2;
+        sdssName = ipartFileName.substr(0,pos[0]);
 
+        tempStr = ipartFileName.substr(pos[1]+1,pos[2]-pos[1]-1);
+        strm1 << tempStr;
+        strm1 >> npart1;
 
-            printf("T: %d  dir: %s\n",mynum,myDir.c_str());
+        tempStr = ipartFileName.substr(pos[2]+1,pos[3]-pos[2]-1);
+        strm2 << tempStr;
+        strm2 >> npart2;
 
-            //  Get files in run directory
-            vector<string> runFiles;
-            DIR* mydirp = opendir(myDir.c_str());
-            struct dirent * mydp;
-            while (( mydp = readdir(mydirp)) != NULL)
-                runFiles.push_back(mydp->d_name);
+        //printf("info File not found\n");
+    }
 
+    // Check if image already exists for current parameters
 
-            // find particle files
-            for (int i; i<runFiles.size();i++)
-            {
-                size_t foundi = runFiles[i].find(".i.");
-                size_t foundf = runFiles[i].find(".f.");
-                if (foundi != string::npos)
-                    ipartFileName = runFiles[i];
-                else if ( foundf != string::npos)
-                    fpartFileName = runFiles[i];
-            }
+    picName = sdssName + '.' + paramName + ".png";
 
-            //  Parse data from particle files
-            size_t pos[4];
-            pos[0] = ipartFileName.find(".");
-            pos[1] = ipartFileName.find(".",pos[0]+1);
-            pos[2] = ipartFileName.find(".",pos[1]+1);
-            pos[3] = ipartFileName.find(".",pos[2]+1);
-
-            sdssName = ipartFileName.substr(0,pos[0]);
-            
-
-
-            printf("1 Progress!  sdss: %s \n",sdssName.c_str());
-
-
-
-
-            //  Read particle files
-            //  attempt to parallize later...
-                        
+    for (unsigned int i=0; i<runFiles.size();i++)
+    {
+        if( runFiles[i].compare(picName)==0){
+            picFound = true;
+            printf("Image with given %s already present in dir %s.\n",paramName.c_str(), runDir.c_str());
         }
     }
 
-    return 0;
+    if (!picFound || !infoFound)
+    {
 
-    /*
+        //printf("Pic not found.  Creating\n");
+        picName = runDir + picName;
 
-
-	//  Read initial particle file.
-	ifstream ipartfile(initial_pfile.c_str());
-	Galaxy g1(particle_number_1, ipartfile);
-	Galaxy g2(particle_number_2, ipartfile);
-	ipartfile.close();
-
-	g1.calc_radius();
-	g2.calc_radius();
-
-    //  Read final particle file.
-	ifstream fpartfile(final_pfile.c_str());
-	g1.read(fpartfile);
-    g2.read(fpartfile);
+        ipartFileName = runDir + ipartFileName;
+        fpartFileName = runDir + fpartFileName;
 
 
-    //  Read center of 2nd galaxy
-    point g1c, g2c;
-    g1c.x = g1c.y = g1c.z = 0;
-    fpartfile >> g2c.x >> g2c.y >> g2c.z;
-    g1.add_center(g1c);
-    g2.add_center(g2c);
-
-	fpartfile.close();
-
-    //  Adjust point so they fit in an image
-	compare(g1,g2);
-    g1.adj_points(img.cols,img.rows,gaussian_size, g1.fpart);
-    g2.adj_points(img.cols,img.rows,gaussian_size, g2.fpart);
-
-    //  Write points to image
-	g1.write(img,gaussian_size,gaussian_weight,6, g1.fpart);
-	g2.write(img,gaussian_size,gaussian_weight,6, g2.fpart);
-
-    normalize_image(img,dest,g2.maxb,4);
 
 
-    //  Troubleshooting location for center of galaxy
-    //g1.add_center_circle(dest);
-    //g2.add_center_circle(dest);
-
-    dest.convertTo(dest,CV_8UC3,255.0);
-    imwrite(output_image,dest);
-
-    return 0;
-
-    */
 
 
-}
+        //  Read Initial particle file
+        ipartFile.open(ipartFileName.c_str());
+        if (ipartFile.fail())    {
+            printf("Initial Particle file not found or failed to open.  Ending...\n");
+            return 0;
+        }
+        g1.read(ipartFile,npart1,'i');
+        g2.read(ipartFile,npart2,'i');
+        ipartFile >> x >> y >> z;  // Grabbing center of g2
+        g2.add_center(x,y,z,'i');
+        ipartFile.close();
 
-void readConfig(ifstream& fin)
-{
-    string str;
+        //printf("read i file\n");
 
-    while( fin >> str ){
-        //cout << str << endl;
-        if (str.compare("particle_location")==0)
-            fin >> particle_location;
-        else if( str.compare("initial_pfile")==0)
-            fin >> initial_pfile;
-        else if( str.compare("thread_count")==0)
-            fin >> thread_count;
-        else if ( str.compare("final_pfile")==0)
-            fin >> final_pfile;
-        else if ( str.compare("output_image")==0)
-            fin >> output_image;
-        else if ( str.compare("particle_number_1")==0)
-            fin >> particle_number_1;
-        else if ( str.compare("particle_number_2")==0)
-            fin >> particle_number_2;
+        //  Final particle file
+        fpartFile.open(fpartFileName.c_str());
+        if (fpartFile.fail())  {
+            printf("Final Particle file not found or failed to open.  Ending...\n");
+            return 0;
+        }
+        g1.read(fpartFile,npart1,'f');
+        g2.read(fpartFile,npart2,'f');
+        fpartFile >> x >> y >> z;
+        g2.add_center(x,y,z,'f');
+        fpartFile.close();
+
+        //printf("Read f file\n");
+
+        //  Add info to info.txt is it's not already there
+        if ( !infoFound )
+        {
+            infoFileOut.open(infoName.c_str());
+            infoFileOut << "Information file for " << sdssName << ' ' << "Run ..."<<endl;
+            infoFileOut << "SDSS_name " << sdssName << endl;
+            infoFileOut << "galaxy1_number_particles " << npart1 << endl;
+            infoFileOut << "galaxy2_number_particles " << npart2 << endl;
+            infoFileOut << setprecision(10);
+            infoFileOut << "galaxy1_i_center " << g1.ix << ' ' << g1.iy << ' ' << g1.iz <<endl;
+            infoFileOut << "galaxy2_i_center " << g2.ix << ' ' << g2.iy << ' ' << g2.iz <<endl;
+            infoFileOut << "galaxy1_f_center " << g1.fx << ' ' << g1.fy << ' ' << g1.fz <<endl;
+            infoFileOut << "galaxy2_f_center " << g2.fx << ' ' << g2.fy << ' ' << g2.fz <<endl;
+
+           // printf("created new info file\n");
+        }
         else
-            cout << str << " : " << (fin >> str) << " Not found\n";
+        {
+            // append addition data to end
+            infoFileOut.open(infoName.c_str(),ios::app);
+            //printf("opening existing info file\n");
+        }
+
+        //  Perform some Internal calculations
+        g1.calc_values();
+        g2.calc_values();
+        compare(g1,g2);
+        //printf("calcue g values\n");
+
+        //  Adjust point values to fit on image
+        g1.adj_points(img.cols,img.rows,gaussian_size, g1.fpart);
+        g2.adj_points(img.cols,img.rows,gaussian_size, g2.fpart);
+        //printf("Adjusted points\n");
+
+        //  Write points to image
+        g1.write(img,gaussian_size,gaussian_weight,gaussian_factor, g1.fpart);
+        g2.write(img,gaussian_size,gaussian_weight,gaussian_factor, g2.fpart);
+        //printf("Wrote points to image\n");
+
+        //  Normalize pixel brightness and write image
+        normalize_image(img,dest,g2.maxb,4);
+        //printf("Writing image to %s\n",picName.c_str());
+        dest.convertTo(dest,CV_8UC3,255.0);
+        imwrite(picName,dest);
+
+        //  Delete memory from Galaxies
+        g1.delMem();
+        g2.delMem();
+
+        //  Write to info file about pixel centers
+        infoFileOut << paramName << ' ' << int(g1.fx) << ' ' << int(g1.fy) << ' ' << int(g2.fx) << ' ' << int(g2.fy) << endl;
+        infoFileOut.close();
+        printf("appended param to info file\n");
+
     }
+
+    return 0;
+
 }
+
 
 void readParam(ifstream& fin)
 {
@@ -238,6 +282,8 @@ void readParam(ifstream& fin)
             fin >> image_rows;
         else if ( str.compare("image_cols")==0)
             fin >> image_cols;
+        else
+            printf("Parameter %s not found\n",str.c_str());
     }
 }
 
@@ -288,15 +334,20 @@ bool removeFromDirectory(string in ){
     return in.compare(0,3,"run")!=0;
 }
 
-bool notParticleFile(string in )
-{
-    //  Search for flags in name signifying it's a particle file
-    size_t foundi = in.find(".i.");
-    size_t foundf = in.find(".f.");
 
-    if ( (foundi == string::npos) && (foundf == string::npos)) // string not found
-        return true;
-    else
-        return false;
+void readInfoFile(ifstream& fin, string &sdssName, int &npart1, int &npart2){
 
+    string str;
+    while( fin >> str ){
+
+        if( str.compare("SDSS_name")==0)
+            fin >> sdssName;
+        else if ( str.compare("Run_Number")==0)
+            fin >> str;
+        else if ( str.compare("galaxy1_number_particles")==0)
+            fin >> npart1;
+        else if ( str.compare("galaxy2_number_particles")==0)
+            fin >> npart2;
+    }
 }
+
