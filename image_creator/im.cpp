@@ -46,8 +46,11 @@ void readInfoFile(ifstream& fin, string &sdssName, int &npart1, int &npart2);
 //  ./a.out param.file sdss_directory
 int main(int argc, char *argv[]){
 
-    //  Read directory and parameter file
+    //  Get run Directory and run Name
     string runDir = argv[1];
+    size_t findRun = runDir.find("run");
+    string runName = runDir.substr(findRun,7);
+    //printf("This should be the run Name: %s\n",runName.c_str());
 
     //  Add '/' to directory string if not already present
     string temp = runDir.substr(runDir.size()-1,1);
@@ -125,7 +128,7 @@ int main(int argc, char *argv[]){
         infoFileIn.open(infoName.c_str());
         readInfoFile(infoFileIn, sdssName, npart1, npart2);
         infoFileIn.close();
-        //printf("Found infoFile %d %d \n",npart1,npart2);
+        //printf("Found infoFile %s %d %d \n",sdssName.c_str(),npart1,npart2);
     }
     else {
 
@@ -206,9 +209,11 @@ int main(int argc, char *argv[]){
         //  Add info to info.txt is it's not already there
         if ( !infoFound )
         {
+            printf("info.txt not found in %s\nCreating...\n",runDir.c_str());
             infoFileOut.open(infoName.c_str());
-            infoFileOut << "Information file for " << sdssName << ' ' << "Run ..."<<endl;
-            infoFileOut << "SDSS_name " << sdssName << endl;
+            infoFileOut << "Information file" << endl;
+            infoFileOut << "sdss_name " << sdssName << endl;
+            infoFileOut << "run_number " << runName << endl;
             infoFileOut << "galaxy1_number_particles " << npart1 << endl;
             infoFileOut << "galaxy2_number_particles " << npart2 << endl;
             infoFileOut << setprecision(10);
@@ -216,7 +221,8 @@ int main(int argc, char *argv[]){
             infoFileOut << "galaxy2_i_center " << g2.ix << ' ' << g2.iy << ' ' << g2.iz <<endl;
             infoFileOut << "galaxy1_f_center " << g1.fx << ' ' << g1.fy << ' ' << g1.fz <<endl;
             infoFileOut << "galaxy2_f_center " << g2.fx << ' ' << g2.fy << ' ' << g2.fz <<endl;
-
+            infoFileOut << endl;
+            infoFileOut << "Images_parameters_centers" << endl;
            // printf("created new info file\n");
         }
         else
@@ -255,10 +261,10 @@ int main(int argc, char *argv[]){
         //  Write to info file about pixel centers
         infoFileOut << paramName << ' ' << int(g1.fx) << ' ' << int(g1.fy) << ' ' << int(g2.fx) << ' ' << int(g2.fy) << endl;
         infoFileOut.close();
-        printf("appended param to info file\n");
+        //printf("appended param to info file\n");
 
     }
-
+    cout << endl;
     return 0;
 
 }
@@ -340,9 +346,9 @@ void readInfoFile(ifstream& fin, string &sdssName, int &npart1, int &npart2){
     string str;
     while( fin >> str ){
 
-        if( str.compare("SDSS_name")==0)
+        if( str.compare("sdss_name")==0)
             fin >> sdssName;
-        else if ( str.compare("Run_Number")==0)
+        else if ( str.compare("run_number")==0)
             fin >> str;
         else if ( str.compare("galaxy1_number_particles")==0)
             fin >> npart1;
