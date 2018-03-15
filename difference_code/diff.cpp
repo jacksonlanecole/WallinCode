@@ -24,6 +24,7 @@ void getDir(vector<string> &vstr, string dirName);
 // $: ./diff.exe  main_directory  target_image
 int main(int argc, char *argv[]){
 
+    cout << endl;
     //  Variables
 
     string dirPath, targetPath, targetName, targetInfoPath, scorePath, temp;
@@ -256,7 +257,7 @@ int main(int argc, char *argv[]){
                     //imshow("difference",diffMat);
                     //waitKey(0);
 
-                    scoreFile << sdssName <<','<< runName  <<','<< targetName  <<','<< imgNames[iImg]  <<','<< paramName  <<','<< "Diff_v1"<<',' <<score << endl;;
+                    scoreFile << sdssName <<','<< runName  <<','<< targetName  <<','<< imgNames[iImg]  <<','<< paramName  <<','<< "diff_v1"<<',' <<score << endl;;
                 }
 
                 warpMat.release();
@@ -267,7 +268,7 @@ int main(int argc, char *argv[]){
         }
     }
 
-    printf("*****  3  *****\n");
+    //printf("*****  3  *****\n");
     return 0;
 }
 
