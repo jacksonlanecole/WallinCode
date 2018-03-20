@@ -144,7 +144,7 @@ int main(int argc, char *argv[]){
     if (!scoreFound){
         printf("Score file not found.  Creating... \n");
         scoreFile.open(scorePath.c_str());
-        scoreFile << "sdss_name,run_number,target_image,simulated_image,parameters,comparison_method,score\n";
+        scoreFile << "sdss_name,run_number,target_image,simulated_image,parameters,comparison_method,machine_score,human_score\n";
     }
     else
         scoreFile.open(scorePath.c_str(),ios::app);
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]){
         bool infoFound = false;
         for ( unsigned int i=0 ; i < myFileNames.size() ; i++ ){
             //printf("%s\n",myRunNames[i].c_str());
-            fImg = myFileNames[i].find(".png");
+            fImg = myFileNames[i].find(".model.png");
             if ( fImg != string::npos ){
                 imgNames.push_back(myFileNames[i]);
                 imgFound = true;
@@ -247,8 +247,22 @@ int main(int argc, char *argv[]){
                     absdiff(targetImg,imageFinal,diffMat);
                     score = rateDiff(diffMat);
 
+                    //Mat inv = targetImg;
+                    //Mat img2 = imageFinal;
+                    //Mat diff2 = diffMat;
+
+                    //bitwise_not(targetImg,inv);
+                    //bitwise_not(imageFinal,img2);
+                    //bitwise_not(diffMat,diff2);
+
+                    //imwrite(myPath+paramName+"target_inv.jpg",targetImg);
+                    //imwrite(myPath+paramName+"img_inv.jpg",img2);
+                    //imwrite(myPath+paramName+"diff_inv.jpg",diff2);
+
+
                     //printf("%f\n",score);
-                    imwrite(myPath+paramName+".diff.jpg",diffMat);
+                    //imwrite(myPath+"imageFinal.jpg",imageFinal);
+                    imwrite(myPath+paramName+".diff.png",diffMat);
                     /*
                     imshow("before image",imageIn);
                     imshow("Target",targetImg);
@@ -269,6 +283,7 @@ int main(int argc, char *argv[]){
     }
 
     //printf("*****  3  *****\n");
+    cout << endl;
     return 0;
 }
 
@@ -336,7 +351,7 @@ double rateDiff(const Mat &m1){
 	for (int i=0;i<m1.rows;i++){
 		for (int j=0;j<m1.cols;j++){
 			val = m1.at<uint8_t>(i,j);
-            if(val>=0 && val<255){
+            if(val>=0 && val<256){
                 var1 += val;
 				var2 += val*val;
 				if (val > max)
