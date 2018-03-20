@@ -22,6 +22,8 @@ using namespace cv;
 Galaxy::Galaxy(){
 	maxr=maxb=ix=iy=iz=fx=fy=fz=0;
     xmax = xmin = ymax = ymin = 0;
+    maxb2 = 0;
+    numThreads = 1;
     //xmin = ymin = -2.5;  // fixed max and min
     //xmax = ymax = 2.5;
 }
@@ -49,22 +51,22 @@ void Galaxy::read(ifstream& infile, int part, char state){
     	for (int i=0;i<npart;i++){
 		    infile>>fpart[i].x>>fpart[i].y>>fpart[i].z>>fpart[i].vx>>fpart[i].vy>>fpart[i].vz;
         }
+        printf("Check: %f %f %f\n",fpart[npart-1].x,fpart[npart-1].y,fpart[npart-1].z);
     }
     else
         printf("Galaxy read particle state unidentified\n");
 }
 
 
-
-void Galaxy::write(Mat &img, int gsize, float weight, int pin, point *pts){
+void Galaxy::write(Mat &img, int gsize, float weight, float rconst, point *pts){
 
 	maxb=0;
 	for (int i=0;i<npart;i++){
 		int row = int(pts[i].y);
 		int col = int(pts[i].x);
+		float pbright = exp( - rconst* ipart[i].r / maxr);
 		for (int k=0;k<gsize;k++){
 			for (int l=0;l<gsize;l++){
-				float pbright = exp( - pin* ipart[i].r / maxr);
 				float val = pbright*1.0/(2*3.14*weight*weight)*exp( -1.0*((k-1.0*gsize/2)*(k-1.0*gsize/2) +  (l-1.0*gsize/2)*(l-1.0*gsize/2))/(2*weight*weight));
 
 				img.at<float>(row +k-gsize/2, col+l-gsize/2)+=val;
@@ -77,11 +79,26 @@ void Galaxy::write(Mat &img, int gsize, float weight, int pin, point *pts){
 
 
 
-void Galaxy::simple_write(Mat &img, point *pts){
+void Galaxy::simple_write(Mat &img,char state){
+    point *pts;
+    bool write = false;
+    if (state == 'i'){
+        pts = ipart;
+        write = true;
+    }
+    else if (state == 'f'){
+        pts = fpart;
+        write = true;
+    }
+    else
+        cout << "State " << state << " not found.  Skipping simple write\n";
 
-	for (int i=0;i<npart;i++){
-		img.at<float>(pts[i].y, pts[i].x)+=1;
-	}
+    if (write)
+    {
+	    for (int i=0;i<npart;i++){
+		    img.at<float>(int(pts[i].y),int( pts[i].x))=1.0;
+	    }
+    }
 }
 
 
@@ -120,11 +137,14 @@ void Galaxy::adj_points(int xsize, int ysize, int gsize, point *pts){
         fx = (fx-xmin)*scale_factor + gsize/2.0;
         fy = ysize - ( ( fy-ymin)*scale_factor + gsize/2.0);
 
+
         for (int i=0; i<npart; i++)
         {
             pts[i].x= (pts[i].x-xmin)*scale_factor + gsize/2.0;
             pts[i].y= ysize-((pts[i].y-ymin)*scale_factor + gsize/2.0);
         }
+
+
 
 }
 
