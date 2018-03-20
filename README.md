@@ -26,7 +26,7 @@ the availability of a machine scoring mechanism will open the door to
 incorporation of various machine learning algorithms to throw out bad models,
 thereby removing the need for a human-in-the-loop altogether.
 
-## Targets<a id="targets">
+<!--## Targets<a id="targets">
 Below is a table containing the SDSSID numbers from DR7, as well as the RA and
 DEC for each of the targets. The for each target take you to the associated
 pages for DR7 and DR14, as well as the Galaxy Zoo page.
@@ -476,6 +476,7 @@ fixing that shortly.</font>
 	<td><a href="https://data.galaxyzoo.org/galaxy-zoo-mergers/targets/group10/index.html#1237678620102623480">Link</a><br></td>
 </tr>
 </table>
+-->
 
 ## Target Images<a id="target_images">
 Real images of the target galaxies are contained in the `target_images`
