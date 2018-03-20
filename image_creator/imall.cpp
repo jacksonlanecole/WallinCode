@@ -29,7 +29,7 @@ string sdss_directory;
 string paramName = "param0001";
 int gaussian_size = 15;
 float gaussian_weight = 2.5;
-float gaussian_factor = 6;
+float radial_constant = 6;
 int norm_value = 4;
 int image_rows = 1000;
 int image_cols = 1000;
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]){
 
             // Check if image already exists for current parameters
 
-            picName = sdssName + '.' + paramName + ".png";
+            picName = sdssName + '.' + paramName + ".model.png";
 
             for (unsigned int i=0; i<runFiles.size();i++)
             {
@@ -278,8 +278,8 @@ int main(int argc, char *argv[]){
                 //printf("Adjusted points\n");
 
                 //  Write points to image
-                g1.write(img,gaussian_size,gaussian_weight,gaussian_factor, g1.fpart);
-                g2.write(img,gaussian_size,gaussian_weight,gaussian_factor, g2.fpart);
+                g1.write(img,gaussian_size,gaussian_weight,radial_constant, g1.fpart);
+                g2.write(img,gaussian_size,gaussian_weight,radial_constant, g2.fpart);
                 //printf("Wrote points to image\n");
 
                 //  Normalize pixel brightness and write image
@@ -336,8 +336,8 @@ void readParam(ifstream& fin)
             fin >> gaussian_size;
         else if ( str.compare("gaussian_weight")==0)
             fin >> gaussian_weight;
-        else if ( str.compare("gaussian_factor")==0)
-            fin >> gaussian_factor;
+        else if ( str.compare("radial_constant")==0)
+            fin >> radial_constant;
         else if ( str.compare("norm_value")==0)
             fin >> norm_value;
         else if ( str.compare("image_rows")==0)
