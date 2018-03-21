@@ -14,9 +14,9 @@ Notes  : This really does not belong in the data_tools package, but
 
 import requests
 from bs4 import BeautifulSoup as bs
-import requests
+#import requests
 import gzip
-from os import remove, mkdir, path
+from os import remove, mkdir, path, system
 
 def get_target_data(dest_path, switcher, target_given):
 
@@ -69,14 +69,15 @@ def get_target_data(dest_path, switcher, target_given):
     for target_number, target in zip(target_to_download, target_name):
         target_gz = dest_path + '/{}.txt.gz'.format(target_name)
         url = _base + paths_for_url[target_number]
-        r = requests.get(url, stream=True)
-        # the below section was found at
-        # https://stackoverflow.com/questions/16694907/how-to-download-
-        # large-file-in-python-with-requests-py
-        with open(target_gz, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=1024):
-                if chunk:
-                    f.write(chunk)
+        system('wget -qO ' + target_gz + ' ' + url)
+        #r = requests.get(url, stream=True)
+        ## the below section was found at
+        ## https://stackoverflow.com/questions/16694907/how-to-download-
+        ## large-file-in-python-with-requests-py
+        #with open(target_gz, 'wb') as f:
+        #    for chunk in r.iter_content(chunk_size=1024):
+        #        if chunk:
+        #            f.write(chunk)
 
         with gzip.open(target_gz, 'rb') as infile:
             with open(target_gz[:-3], 'wb') as outfile:
