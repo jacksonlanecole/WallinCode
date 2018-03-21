@@ -1,5 +1,8 @@
 Wallin
 - What are Max and Min point values in JSPAM code?
+- Will run folders contain multiple sets of point files?
+- Good day to read Methods sections?
+- Image triangle transformation process
 
 Need to do
 - Grab human_rated scores from SDSS file and save somewhere
