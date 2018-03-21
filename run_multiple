@@ -14,18 +14,32 @@ Notes  : This script should be made executable, as it calls specifically python3
 
 from sys import argv
 from os import system, path, mkdir, chdir, rename, walk, listdir
+from merger import MergerRun, data_tools
 from data_tools import Structure, get_target_data
+from numpy import genfromtxt
+
+def main(argv):
+    if len(argv) > 1:
+        deal_with_args(argv)
+
+    else:
+        print('run_multiple accepts the following command line'\
+                ' options:\n')
+        print('    -i : run interactively\n'\
+              '    -b : batch process (not available yet)')
+        print()
+        print('NOTE: -i and -b are mutually exclusive.')
 
 
 def how_many_runs():
     """Determine how many runs to do, return the numbers corresponding
-    to the first and last runs. first_run and last_run will be first_run + 1 if
-    only one run is wanted.
+    to the first and last runs. first_run and last_run will be first_run
+    + 1 if only one run is wanted.
     """
     how_many = 1000
     while how_many != 1 and how_many != 2:
-        how_many = int(input('Would you like to run one run or multiple runs?\
-            (1),(2):\n(1) one\n(2) multiple\n> '))
+        how_many = int(input('Would you like to run one run or multiple\
+                runs? (1),(2):\n(1) one\n(2) multiple\n> '))
         if how_many != 1 and how_many != 2:
             print('ERROR: Invalid input')
 
@@ -51,17 +65,8 @@ def get_init(filename, first_run, last_run):
     return init_value_strings, run_list
 
 
-def wipe(filename, run_number, n1_particles, n2_particles):
-    """The current configuration of this program outputs ALL runfiles in the
-    root directory where run_multiple is called. This function
-    uses the Structure module in the data_tools package to create the directory
-    structure needed for organizing the data effectively.
-
-    The runfiles are the relocated to the appropriate directory in the structure
-    and are renamed with the following naming convention:
-        {sdssid}.(i, f).{number of particles in galaxy 1}
-        .{num of particles in galaxy 2}.txt
-    """
+def setup_target_structure(filename, run_number, n1_particles,
+        n2_particles):
     root_name = 'output'
     run_number = str(run_number + 1).zfill(4)
     print(run_number)
@@ -69,73 +74,190 @@ def wipe(filename, run_number, n1_particles, n2_particles):
 
     paths = [root_name, name, 'run{}'.format(run_number)]
     target_dirs = Structure(paths)
-    print(target_dirs.paths)
-    print(target_dirs.full_path)
-    target_dirs.create()
+    #print(target_dirs.paths)
+    #print(target_dirs.full_path)
+
+    return target_dirs
+
+
+def wipe(merger):
+    """The current configuration of this program outputs ALL runfiles
+    in the root directory where run_multiple is called. This function
+    uses the Structure module in the data_tools package to create the
+    directory structure needed for organizing the data effectively.
+
+    The runfiles are the relocated to the appropriate directory in the
+    structure and are renamed with the following naming convention:
+        {sdssid}.(i, f).{number of particles in galaxy 1}
+        .{num of particles in galaxy 2}.txt
+
+    This function should also read in the citizen science scores from
+    the target run file... there's probably a better place to do this.
+    """
+    merger.create()
+    merger.get_scores()
+    merger.write_scores()
+
+    root_name = merger.target_dirs.paths[0]
+    name = merger.name
+    run_number = str(merger.run + 1).zfill(4)
 
     for file_name in [f for f in listdir('.') if path.isfile(f)]:
         if (file_name.startswith('a.')):
             extension = path.splitext(file_name)[1][1:]
-            rename(file_name, (target_dirs.full_path +
-                    '{sdssid}.{ext}.{n1}.{n2}.txt').format(root = root_name,
-                        sdssid = name, run_no = run_number,\
-                                ext = ('i', 'f')[extension == '101'],
-                                n1 = n1_particles, n2 = n2_particles))
+            rename(file_name, (merger.target_dirs.full_path +
+                    '{sdssid}.{run_no}.{ext}.{n1}.{n2}.txt'.format(
+                        root   = root_name,
+                        sdssid = name,
+                        run_no = run_number,
+                        ext    = ('i', 'f')[extension == '101'],
+                        n1     = merger.primary.particles,
+                        n2     = merger.secondary.particles,)))
 
 
-def get_the_runs_and_wipe(init_value_strings, run_list, filename, n1_particles,
-        n2_particles):
-    """Calls ./basic_run multiple times with the correct command
-    line arguments and clean up afterwards
-    """
-    for value_list, run_number in zip(init_value_strings, list(run_list)):
+def get_runs_scores_and_wipe(mergers):
+    for merger in mergers:
+        #target_dirs = setup_target_structure(filename,
+        #        run_number, n1_particles, n2_particles)
+
         system('./basic_run -n1 {} -n2 {} {}'
-                .format(n1_particles, n2_particles, value_list))
-        wipe(filename, run_number, n1_particles, n2_particles)
+                .format(merger.primary.particles,
+                        merger.secondary.particles,
+                        merger.init))
+        #system('./basic_run -n1 {} -n2 {} {}'
+        #        .format(n1_particles, n2_particles, value_list))
+        wipe(merger)
+
 
 def deal_with_args(argv):
     if argv[1] == '-i':
         yes = frozenset(['yes', 'y'])
-        if (input('Do you need to download any input files? (yes/no)\n> ')
-                .lower() in yes):
-            get_target_data('input')
+        if (input('Do you need to download any input files? \
+                (yes/no)\n> ').lower() in yes):
+            get_target_data('input', 0, 'dummy')
 
         print('These are the available input files: ')
         for file_name in [f for f in listdir('./input/')
                 if path.isfile('./input/' + f)]:
-            print(file_name)
-
-        filename = './input/' + input('Copy and paste the name of a file in the'\
-            'input directory you want to work with:\n> ')
-        print('Target File Selected: {}'.format(path.splitext(filename)[0]))
+                    print(file_name)
+        name = input('Copy and paste the name of a file in the input '\
+                'directory you want to work with:\n>')[:-len('.txt')]
+        filename = './input/' + name + '.txt'
+        print('Target File Selected: {}'.format(
+            path.splitext(filename)[0]))
 
         n1_particles = int(input('Enter number of particles for galaxy 1:\n> '))
         n2_particles = int(input('Enter number of particles for galaxy 2:\n> '))
 
         first_run, last_run = how_many_runs()
-        init_value_strings, run_list = get_init(filename, first_run, last_run)
-        get_the_runs_and_wipe(init_value_strings, run_list, filename,
-                n1_particles, n2_particles)
+
+        init_value_strings, run_list = get_init(
+                filename, first_run, last_run)
+
+        path_to_info_file = './targets/' + name + '/' + name + '.info.txt'
+
+        mergers = []
+        for init_run_string, run in zip(init_value_strings, run_list):
+            mergers.append(MergerRun(path_to_info_file, n1_particles,
+                n2_particles, run, init_run_string))
+
+
+        get_runs_scores_and_wipe(mergers)
+
+    elif argv[1] == '-bi':
+        if path.isdir('./batch_run_files/') == False:
+            mkdir('./batch_run_files')
+            with open('./batch_run_files/sample.txt', 'w') as f:
+                f.write('#target,n1_particles,n2_particles,first_run,last_run\n')
+                f.write('587722984435351614,500,500,100,100\n')
+
+            print('A batch_run_file has been created with a sample run file '\
+                    'inside.\n You must create a batch run file to do batch '\
+                    'processing.')
+
+        else:
+            print('The following batch processing files are available:')
+
+            for file_name in [f for f in listdir('./batch_run_files/')]:
+                if path.isfile('./batch_run_files/'+file_name) == True and \
+                        file_name != 'sample.txt':
+                    print(file_name)
+
+            choice = input('Please copy and paste the path of the appropriate '\
+                    'batch run file:\n> ')
+
+            lines = []
+            with open('./batch_run_files/' + choice, 'r') as f:
+                for line in f:
+                    if line.startswith('#') == False:
+                        lines.append(line.rstrip().split(','))
+
+            for line in lines:
+                name = line[0]
+                n1_particles = int(line[1])
+                n2_particles = int(line[2])
+                first_run    = int(line[3]) - 1
+                last_run     = int(line[4]) - 1
+
+                get_target_data('input', 1, name)
+
+                filename = './input/' + name + '.txt'
+                init_value_strings, run_list = get_init(
+                        filename, first_run, last_run)
+
+                path_to_info_file = './targets/' + name + '/' + name + \
+                        '.info.txt'
+
+                mergers = []
+                for init_run_string, run in zip(init_value_strings, run_list):
+                    mergers.append(MergerRun(path_to_info_file, n1_particles,
+                        n2_particles, run, init_run_string))
+
+
+                get_runs_scores_and_wipe(mergers)
+
 
     elif argv[1] == '-b':
-        print('This will handle batch processing, but is not completed '\
-                'as of yet.')
+        if len(argv) < 3:
+            print('No batch_run_files specified...')
+        else:
+            for batch_run_file in argv[2:]:
+                lines = []
+                with open('./batch_run_files/' + batch_run_file, 'r') as f:
+                    for line in f:
+                        if line.startswith('#') == False:
+                            lines.append(line.rstrip().split(','))
+
+                for line in lines:
+                    name = line[0]
+                    n1_particles = int(line[1])
+                    n2_particles = int(line[2])
+                    first_run    = int(line[3]) - 1
+                    last_run     = int(line[4]) - 1
+
+                    get_target_data('input', 1, name)
+
+                    filename = './input/' + name + '.txt'
+                    init_value_strings, run_list = get_init(
+                            filename, first_run, last_run)
+
+                    path_to_info_file = './targets/' + name + '/' + name + \
+                            '.info.txt'
+
+                    mergers = []
+                    for init_run_string, run in zip(init_value_strings, run_list):
+                        mergers.append(MergerRun(path_to_info_file, n1_particles,
+                            n2_particles, run, init_run_string))
+
+
+                    get_runs_scores_and_wipe(mergers)
+
 
     else:
         print('Option not recognized')
 
 
-
-def main(argv):
-    if len(argv) > 1:
-        deal_with_args(argv)
-
-    else:
-        print('run_multiple accepts the following command line options:\n')
-        print('    -i : run interactively\n'\
-              '    -b : batch process (not available yet)')
-        print()
-        print('NOTE: -i and -b are mutually exclusive.')
+    print('Exiting...')
 
 
 if (__name__ == '__main__'):
