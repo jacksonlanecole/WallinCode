@@ -39,8 +39,8 @@ def how_many_runs():
     """
     how_many = 1000
     while how_many != 1 and how_many != 2:
-        how_many = int(input('Would you like to run one run or multiple\
-                runs? (1),(2):\n(1) one\n(2) multiple\n> '))
+        how_many = int(input('Would you like to run one run or multiple '\
+                'runs? (1),(2):\n(1) one\n(2) multiple\n> '))
         if how_many != 1 and how_many != 2:
             print('ERROR: Invalid input')
 
