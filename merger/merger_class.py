@@ -1,3 +1,14 @@
+"""merger_class.py
+Author : Jackson Cole
+Affil  : Middle Tennessee State University
+Purpose: The MergerRun class is useful for encapsulating all data
+         and methods that are commonly used when interacting with a
+         merger's data.
+
+         There are general size and dimensions classes at the bottom as
+         well. They do what they do.
+"""
+
 from data_tools import Structure
 from galaxy import Galaxy
 import os
