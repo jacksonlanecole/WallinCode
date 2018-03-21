@@ -26,7 +26,8 @@ def main(argv):
         print('run_multiple accepts the following command line'\
                 ' options:\n')
         print('    -i : run interactively\n'\
-              '    -b : batch process (not available yet)')
+              '    -bi : batch process (interactively...)\n'\
+              '    -b : batch process')
         print()
         print('NOTE: -i and -b are mutually exclusive.')
 
