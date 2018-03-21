@@ -27,7 +27,7 @@ class MergerRun:
                                         None)
         self.dimensions      = Dimensions(self.height, self.width)
         self.filename        = self.name + '.txt'
-        self.scores_filename = self.name + '.scores.txt'
+        self.humanscores_filename = self.name + '.humanscores.txt'
         self.run             = run_number
         self.init            = init_run_string
         self.structure_created = False
@@ -115,11 +115,11 @@ class MergerRun:
 
     def write_scores(self):
         path_to = './output/' + self.name + '/'
-        if os.path.exists(path_to + self.scores_filename):
-            print(self.scores_filename + ' exists. Not overwriting.')
+        if os.path.exists(path_to + self.humanscores_filename):
+            print(self.humanscores_filename + ' exists. Not overwriting.')
 
         else:
-            with open(path_to + self.scores_filename, 'w') as f:
+            with open(path_to + self.humanscores_filename, 'w') as f:
                 for score_list in self.scores:
                     f.write(','.join(score_list) + '\n')
 
