@@ -1,11 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <sys/types.h>
 #include <dirent.h>
-
-//#include "opencv2/utility.hpp"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -29,6 +28,7 @@ int main(int argc, char *argv[]){
 
     string dirPath, targetPath, targetName, targetInfoPath, scorePath, temp;
     vector<string> mainDirNames, runDirPath, scoreDirNames, targetDirNames;
+    int g1x,g1y,g2x,g2y;  // target x and y center pixel values;
 
     ifstream targetInfoFile;
     ofstream scoreFile;
@@ -102,38 +102,69 @@ int main(int argc, char *argv[]){
     //waitKey(0);
 
     //*****  Read target info  *****//
-    targetInfoPath = dirPath + "target_images/info.txt";
-    targetInfoFile.open(targetInfoPath.c_str());
-    if (targetInfoFile.fail()){
-        cout << "Target information file not found at " << targetInfoPath << endl;
-        cout << "Exiting\n\n";
-        return 0;
-    }
-
-    size_t fTarget;
-    bool infoFound = false;
-    int tx1, tx2, ty1, ty2;
-    while (targetInfoFile>>temp)
-    {
-        fTarget = targetPath.find(temp);
-        if (fTarget != string::npos){
-            infoFound = true;
-            targetInfoFile >> tx1 >> ty1 >> tx2 >> ty2;
-            targetCenter[0] = Point2f(tx1,ty1);
-            targetCenter[1] = Point2f(tx2,ty2);
-		    targetCenter[2] = Point2f(targetCenter[0].x+(targetCenter[0].y-targetCenter[1].y)/3,targetCenter[0].y+(targetCenter[1].x-targetCenter[0].x)/3);
-            //printf("\n%d %d %d %d\n",x1,y1,x2,y2);
+    bool tinfoFound = false;
+    for (unsigned int i=0; i<targetDirNames.size();i++){
+        size_t fInfo = targetDirNames[i].find("info.txt");
+        if ( fInfo != string::npos ){
+            tinfoFound = true;
+            targetInfoPath = dirPath + "target_images/" + targetDirNames[i];
+            //cout << targetInfoPath << endl;
         }
     }
 
-    if (!infoFound){
-        printf("No info found in %s for target image %s\nExiting...\n",targetInfoPath.c_str(),targetPath.c_str());
+    targetInfoFile.open(targetInfoPath.c_str());
+    if (targetInfoFile.fail()){
+        cout << "Target information file not found at " << targetInfoPath << endl;
+        cout << "Exiting...\n\n";
         return 0;
+    }
+
+    size_t tFind[5];
+    bool tFound[4] = {0,0,0,0};
+    float tempFlt;
+    int pixel[4];
+    while(targetInfoFile>>temp){
+        tFind[0] = temp.find("pxc");
+        tFind[1] = temp.find("pyc");
+        tFind[2] = temp.find("sxc");
+        tFind[3] = temp.find("syc");
+        tFind[4] = temp.find('.');
+        for(int i=0;i<4;i++){
+            if(tFind[i] != string::npos){
+                tFound[i]=true;
+                stringstream tempStrm;
+                tempStrm << temp.substr(4,temp.length()-4);
+                tempStrm >> tempFlt;
+                pixel[i] = int(tempFlt);
+                //cout <<temp<<' '<<lines[i]<<' ' << tempFlt << ' ' << pixel[i] << endl;
+            }
+        }
+        //cout << temp << endl;
+    }
+
+    if (!tFound[0] || !tFound[1] || !tFound[2] || !tFound[3] ){
+        cout << "Target information file could not find pixel coordinates: " << targetInfoPath << endl;
+        cout << "Exiting...\n\n";
+        return 0;
+    }
+
+    pixel[3] = targetImg.cols - pixel[3];  // Changing starting count from lower left to upper left.
+    targetCenter[0] = Point2f(pixel[0],pixel[1]);
+    targetCenter[1] = Point2f(pixel[2],pixel[3]);
+	targetCenter[2] = Point2f(targetCenter[0].x+(targetCenter[0].y-targetCenter[1].y)/3,targetCenter[0].y+(targetCenter[1].x-targetCenter[0].x)/3);
+
+    //  Testing to see if point appear to be on centers
+    bool addCirclesToTarget = false;
+    if(addCirclesToTarget){
+        circle(targetImg, targetCenter[0], 10, Scalar(255,255,255),2,8);
+        circle(targetImg, targetCenter[1], 10, Scalar(255,255,255),2,8);
+        circle(targetImg, targetCenter[2], 10, Scalar(255,255,255),2,8);
+        imwrite(dirPath+"target_images/cirlces.png",targetImg);
     }
 
 
     //*****  Search and Open score file *****//
-    bool scoreFound;
+    bool scoreFound = false;
     for (unsigned int i=0 ; i<scoreDirNames.size() ; i++){
         if (scoreDirNames[i].compare("scores.csv") == 0 )
             scoreFound = true;
@@ -238,8 +269,8 @@ int main(int argc, char *argv[]){
                 {
                     myInfoFile >> paramName >> x1 >> y1 >> x2 >> y2;
                     //printf("%d %d %d %d\n",x1,y1,x2,y2);
-                    imageCenter[0] = Point2f( x1 , y1 );
-                    imageCenter[1] = Point2f( x2 , y2 );
+                    imageCenter[0] = Point2f( x1, y1 );
+                    imageCenter[1] = Point2f( x2, y2 );
 		            imageCenter[2] = Point2f(imageCenter[0].x+(imageCenter[0].y-imageCenter[1].y)/3,imageCenter[0].y+(imageCenter[1].x-imageCenter[0].x)/3);
                     warpMat = getAffineTransform(imageCenter,targetCenter);
                     warpAffine(imageIn,imageFinal,warpMat,targetImg.size());
@@ -247,30 +278,7 @@ int main(int argc, char *argv[]){
                     absdiff(targetImg,imageFinal,diffMat);
                     score = rateDiff(diffMat);
 
-                    //Mat inv = targetImg;
-                    //Mat img2 = imageFinal;
-                    //Mat diff2 = diffMat;
-
-                    //bitwise_not(targetImg,inv);
-                    //bitwise_not(imageFinal,img2);
-                    //bitwise_not(diffMat,diff2);
-
-                    //imwrite(myPath+paramName+"target_inv.jpg",targetImg);
-                    //imwrite(myPath+paramName+"img_inv.jpg",img2);
-                    //imwrite(myPath+paramName+"diff_inv.jpg",diff2);
-
-
-                    //printf("%f\n",score);
-                    //imwrite(myPath+"imageFinal.jpg",imageFinal);
                     imwrite(myPath+paramName+".diff.png",diffMat);
-                    /*
-                    imshow("before image",imageIn);
-                    imshow("Target",targetImg);
-                    imshow("image",imageFinal);
-                    */
-                    //imshow("difference",diffMat);
-                    //waitKey(0);
-
                     scoreFile << sdssName <<','<< runName  <<','<< targetName  <<','<< imgNames[iImg]  <<','<< paramName  <<','<< "diff_v1"<<',' <<score << endl;;
                 }
 
