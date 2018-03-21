@@ -12,9 +12,9 @@ Notes  : This really does not belong in the data_tools package, but
          it's the best place for it right now, so here it lives.
 """
 
-import requests
-from bs4 import BeautifulSoup as bs
+import urllib3
 #import requests
+from bs4 import BeautifulSoup as bs
 import gzip
 from os import remove, mkdir, path, system
 
@@ -22,9 +22,11 @@ def get_target_data(dest_path, switcher, target_given):
 
     _base = 'https://data.galaxyzoo.org/'
     _URL = _base + 'mergers.html'
-    r = requests.get(_URL)
+    http = urllib3.PoolManager()
+    r = http.request('GET', _URL)
+    #r = requests.get(_URL)
 
-    soup = bs(r.text, 'lxml')
+    soup = bs(r.data, 'lxml')
     paths_for_url = []
     target_names = []
 
