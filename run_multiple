@@ -142,7 +142,7 @@ def deal_with_args(argv):
                 if path.isfile('./input/' + f)]:
                     print(file_name)
         name = input('Copy and paste the name of a file in the input '\
-                'directory you want to work with:\n>')[:-len('.txt')]
+                'directory you want to work with:\n> ')[:-len('.txt')]
         filename = './input/' + name + '.txt'
         print('Target File Selected: {}'.format(
             path.splitext(filename)[0]))
