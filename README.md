@@ -29,7 +29,7 @@ thereby removing the need for a human-in-the-loop altogether.
 
 ## Get Started<a id="getstarted">
 To simplify things, we have included the entire `virtualenv-15.2.0` package
-found at `https://pypi.python.org/pypi/virtualenv/15.2.0`. To setup
+found at https://pypi.python.org/pypi/virtualenv/15.2.0. To setup
 the virtual environment install the required packages, issue the following
 commands from the root directory:
 
