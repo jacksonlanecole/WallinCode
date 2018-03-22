@@ -34,7 +34,7 @@ the virtual environment install the required packages, issue the following
 commands from the root directory:
 
 ```
-python virtualenv-15.2.0 -p python3 env
+python virtualenv-15.2.0/virtualenv.py -p python3 env
 ```
 
 At this point, the virtualenv can be activated by entering
