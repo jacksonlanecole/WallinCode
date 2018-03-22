@@ -12,8 +12,7 @@ Notes  : This really does not belong in the data_tools package, but
          it's the best place for it right now, so here it lives.
 """
 
-import urllib3
-#import requests
+import requests
 from bs4 import BeautifulSoup as bs
 import gzip
 from os import remove, mkdir, path, system
@@ -22,11 +21,9 @@ def get_target_data(dest_path, switcher, target_given):
 
     _base = 'https://data.galaxyzoo.org/'
     _URL = _base + 'mergers.html'
-    http = urllib3.PoolManager()
-    r = http.request('GET', _URL)
-    #r = requests.get(_URL)
+    r = requests.get(_URL)
 
-    soup = bs(r.data, 'lxml')
+    soup = bs(r.text, 'lxml')
     paths_for_url = []
     target_names = []
 
@@ -71,15 +68,15 @@ def get_target_data(dest_path, switcher, target_given):
     for target_number, target in zip(target_to_download, target_name):
         target_gz = dest_path + '/{}.txt.gz'.format(target_name)
         url = _base + paths_for_url[target_number]
-        system('wget -qO ' + target_gz + ' ' + url)
-        #r = requests.get(url, stream=True)
-        ## the below section was found at
-        ## https://stackoverflow.com/questions/16694907/how-to-download-
-        ## large-file-in-python-with-requests-py
-        #with open(target_gz, 'wb') as f:
-        #    for chunk in r.iter_content(chunk_size=1024):
-        #        if chunk:
-        #            f.write(chunk)
+        #system('wget -qO ' + target_gz + ' ' + url)
+        r = requests.get(url, stream=True)
+        # the below section was found at
+        # https://stackoverflow.com/questions/16694907/how-to-download-
+        # large-file-in-python-with-requests-py
+        with open(target_gz, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
 
         with gzip.open(target_gz, 'rb') as infile:
             with open(target_gz[:-3], 'wb') as outfile:
