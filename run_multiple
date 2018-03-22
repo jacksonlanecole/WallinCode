@@ -133,8 +133,8 @@ def get_runs_scores_and_wipe(mergers):
 def deal_with_args(argv):
     if argv[1] == '-i':
         yes = frozenset(['yes', 'y'])
-        if (input('Do you need to download any input files? \
-                (yes/no)\n> ').lower() in yes):
+        if (input('Do you need to download any input files? '\
+                '(yes/no)\n> ').lower() in yes):
             get_target_data('input', 0, 'dummy')
 
         print('These are the available input files: ')
