@@ -28,6 +28,7 @@ int main(int argc, char *argv[]){
 
     string dirPath, targetPath, targetName, targetInfoPath, scorePath, temp;
     vector<string> mainDirNames, runDirPath, scoreDirNames, targetDirNames;
+	string targetInfoDir;
     int g1x,g1y,g2x,g2y;  // target x and y center pixel values;
 
     ifstream targetInfoFile;
@@ -56,7 +57,6 @@ int main(int argc, char *argv[]){
     //for(unsigned int i=0; i < mainDirNames.size() ; i++ )
     //    printf("%s\n",mainDirNames[i].c_str());
 
-
     //******     Find and sort Directories     *****//
     for ( unsigned int i=0; i<mainDirNames.size();i++){
 
@@ -68,7 +68,9 @@ int main(int argc, char *argv[]){
         }
 
         //  Find target image directory
-        else if ( mainDirNames[i].compare("target_images") == 0 ){
+		// CHANGED THE BELOW LINE TO COMPARE TO "targets" RATHER THAN
+		//// "target_images"
+        else if ( mainDirNames[i].compare("targets") == 0 ){
             temp = dirPath + mainDirNames[i] + '/';
             getDir(targetDirNames, temp);
             //for (unsigned int j=0; j<targetDirNames.size();j++)
@@ -101,16 +103,33 @@ int main(int argc, char *argv[]){
     //imshow("window",targetImg);
     //waitKey(0);
 
+	/*------------------------------------------------------------------------*/
+	// TEMPORARY(?) FIX: I needed to just specify the location of the
+	//// target info file. This is done in argv[3].
     //*****  Read target info  *****//
-    bool tinfoFound = false;
-    for (unsigned int i=0; i<targetDirNames.size();i++){
-        size_t fInfo = targetDirNames[i].find("info.txt");
-        if ( fInfo != string::npos ){
-            tinfoFound = true;
-            targetInfoPath = dirPath + "target_images/" + targetDirNames[i];
-            //cout << targetInfoPath << endl;
-        }
-    }
+	bool tinfoFound = false;
+	size_t fInfo = 1;             // Setting this to 1 so the next logic will
+	                              //// work, I don't want to break anything.
+	if ( fInfo != string::npos ) {
+		tinfoFound = true;
+		//targetInfoPath = dirPath + "targets/" + targetDirNames[i];
+		targetInfoPath = argv[3]; // this argument specifies the whole path
+	}
+	/*------------------------------------------------------------------------*/
+
+	/*------------------------------------------------------------------------*/
+	// COMMENTED THIS OUT. The above temporary fix accomplishes what this does
+	//// but with more of an ad hoc approach.
+    //bool tinfoFound = false;
+    //for (unsigned int i = 0; i < targetDirNames.size(); i++) {
+    //    size_t fInfo = targetDirNames[i].find("info.txt");
+	//	if ( fInfo != string::npos ) {
+	//		tinfoFound = true;
+	//		//targetInfoPath = dirPath + "targets/" + targetDirNames[i];
+	//		targetInfoPath = "./targets/" + targetDirNames[i];
+	//	}
+    //}
+	/*------------------------------------------------------------------------*/
 
     targetInfoFile.open(targetInfoPath.c_str());
     if (targetInfoFile.fail()){
@@ -159,13 +178,13 @@ int main(int argc, char *argv[]){
         circle(targetImg, targetCenter[0], 10, Scalar(255,255,255),2,8);
         circle(targetImg, targetCenter[1], 10, Scalar(255,255,255),2,8);
         circle(targetImg, targetCenter[2], 10, Scalar(255,255,255),2,8);
-        imwrite(dirPath+"target_images/cirlces.png",targetImg);
+        imwrite(dirPath+"target_images/circles.png",targetImg);
     }
 
 
     //*****  Search and Open score file *****//
     bool scoreFound = false;
-    for (unsigned int i=0 ; i<scoreDirNames.size() ; i++){
+    for (unsigned int i=0 ; i < scoreDirNames.size() ; i++){
         if (scoreDirNames[i].compare("scores.csv") == 0 )
             scoreFound = true;
     }
