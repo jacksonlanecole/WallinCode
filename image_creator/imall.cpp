@@ -120,7 +120,7 @@ int main(int argc, char *argv[]){
             int npart1, npart2;
             double x,y,z;
             bool picFound = false, infoFound = false;
-            bool iFileFound = true, fFileFound = true;
+            bool iFileFound = false, fFileFound = false;
 
             //printf("runDir: %s\n",runDir.c_str());
 
@@ -137,10 +137,12 @@ int main(int argc, char *argv[]){
                 size_t foundf = runFiles[i].find(".f.");
                 if ( foundi != string::npos ){
                     ipartFileName = runFiles[i];
+                    iFileFound = true;
                     //printf("Found i file! %s\n",ipartFileName.c_str());
                 }
                 else if ( foundf != string::npos){
                     fpartFileName = runFiles[i];
+                    fFileFound = true;
                     //printf("Found f file! %s\n",fpartFileName.c_str());
                 }
                 else if ( runFiles[i].compare("info.txt") == 0 ) {
@@ -195,25 +197,31 @@ int main(int argc, char *argv[]){
                 }
             }
 
+            if (!iFileFound || !fFileFound){
+                printf("Point Particles files could not be found in %s\n",runDir.c_str());
+            }
+            else {
+                            ipartFileName = runDir + ipartFileName;
+                fpartFileName = runDir + fpartFileName;
 
-            ipartFileName = runDir + ipartFileName;
-            fpartFileName = runDir + fpartFileName;
+
+                //  Read Initial particle file
+                ipartFile.open(ipartFileName.c_str());
+                if (ipartFile.fail())    {
+                    printf("Initial Particle file failed to open in %s\nSkipping...\n",runDir.c_str());
+                    iFileFound = false;
+                }
 
 
-            //  Read Initial particle file
-            ipartFile.open(ipartFileName.c_str());
-            if (ipartFile.fail())    {
-                printf("Initial Particle file not found or failed to open in %s\nSkipping...\n",runDir.c_str());
-                iFileFound = false;
+                //  Final particle file
+                fpartFile.open(fpartFileName.c_str());
+                if (fpartFile.fail())  {
+                    printf("Final Particle file failed to open in %s\nSkipping...\n",runDir.c_str());
+                    fFileFound = false;
+                }
             }
 
 
-            //  Final particle file
-            fpartFile.open(fpartFileName.c_str());
-            if (fpartFile.fail())  {
-                printf("Final Particle file not found or failed to open in %s\nSkipping...\n",runDir.c_str());
-                fFileFound = false;
-            }
 
             if ( !picFound && iFileFound && fFileFound )
             {
@@ -221,11 +229,10 @@ int main(int argc, char *argv[]){
                 //printf("Pic not found.  Creating\n");
                 picName = runDir + picName;
 
-
-
                 g1.read(ipartFile,npart1,'i');
                 g2.read(ipartFile,npart2,'i');
                 ipartFile >> x >> y >> z;  // Grabbing center of g2
+                g1.add_center(0,0,0,'i');
                 g2.add_center(x,y,z,'i');
 
 
