@@ -49,7 +49,6 @@ void Galaxy::read(ifstream& infile, int part, char state){
     	for (int i=0;i<npart;i++){
 		    infile>>fpart[i].x>>fpart[i].y>>fpart[i].z>>fpart[i].vx>>fpart[i].vy>>fpart[i].vz;
         }
-        printf("Check: %f %f %f\n",fpart[npart-1].x,fpart[npart-1].y,fpart[npart-1].z);
     }
     else
         printf("Galaxy read particle state unidentified\n");
@@ -140,7 +139,11 @@ void Galaxy::adj_points(int xsize, int ysize, int gsize, point *pts){
         {
             pts[i].x= (pts[i].x-xmin)*scale_factor + gsize/2.0;
             pts[i].y= ysize-((pts[i].y-ymin)*scale_factor + gsize/2.0);
+
         }
+
+        xmax = (xmax-xmin)*scale_factor + gsize/2.0;
+        ymax = ysize-((ymax-ymin)*scale_factor + gsize/2.0);
 
 
 
@@ -167,5 +170,20 @@ void Galaxy::add_center(double x, double y, double z, char state){
 void Galaxy::add_center_circle(Mat &img){
 
             circle( img,Point2f(int(fx),int(fy)),10,Scalar(255,255,255),2,8);
-
 }
+
+void Galaxy::check_points(){
+    printf("Maxes: %f %f %f %f\n", xmax, xmin, ymax, ymin);
+    //printf("NumPart: %d\n",npart);
+    //printf("Checking init particles\n");
+    for (int i=0;i<npart;i++){
+        ;
+        if ( fpart[i].x < 0 || fpart[i].y < 0){
+            cout << printf("Below zero: %f %f\n",fpart[i].x,fpart[i].y);
+        }
+        printf("%d %f %f\n",i,fpart[i].x, fpart[i].y);;
+        //printf("%f %f %f %f \n",ipart[i].x,ipart[i].y,fpart[i].x,fpart[i].y);
+    }
+}
+
+
