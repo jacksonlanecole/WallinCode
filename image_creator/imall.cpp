@@ -23,6 +23,8 @@ using namespace std;
 
 //  Global Variables
 int thread_count = 1;
+bool overWriteImages = true;
+bool readRunInfoFile = false;
 string sdss_directory;
 
 //  Default values
@@ -155,7 +157,7 @@ int main(int argc, char *argv[]){
 
             infoName = runDir + "info.txt";
             //printf("Info dir/name %s\n",infoName.c_str());
-            if (infoFound){
+            if ( readRunInfoFile && infoFound ){
                 infoFileIn.open(infoName.c_str());
                 readInfoFile(infoFileIn, sdssName, npart1, npart2);
                 infoFileIn.close();
@@ -164,21 +166,25 @@ int main(int argc, char *argv[]){
             else {
 
                 //  Parse data from particle file name
-                size_t pos[4];
+                //  assumes sdssName.runName.state.g1Part.g2Part.txt
+                size_t pos[5];
                 pos[0] = ipartFileName.find(".");
                 pos[1] = ipartFileName.find(".",pos[0]+1);
                 pos[2] = ipartFileName.find(".",pos[1]+1);
                 pos[3] = ipartFileName.find(".",pos[2]+1);
+                pos[4] = ipartFileName.find(".",pos[4]+1);
 
                 sdssName = ipartFileName.substr(0,pos[0]);
 
-                tempStr = ipartFileName.substr(pos[1]+1,pos[2]-pos[1]-1);
+                tempStr = ipartFileName.substr(pos[2]+1,pos[3]-pos[2]-1);
                 strm1 << tempStr;
                 strm1 >> npart1;
 
-                tempStr = ipartFileName.substr(pos[2]+1,pos[3]-pos[2]-1);
+                tempStr = ipartFileName.substr(pos[3]+1,pos[4]-pos[3]-1);
                 strm2 << tempStr;
                 strm2 >> npart2;
+
+                //printf("Num Part: %d %d\n",npart1,npart2);
 
                 //printf("info File not found\n");
             }
@@ -189,7 +195,7 @@ int main(int argc, char *argv[]){
 
             for (unsigned int i=0; i<runFiles.size();i++)
             {
-                if( runFiles[i].compare(picName)==0){
+                if( !overWriteImages && runFiles[i].compare(picName)==0){
                     picFound = true;
                     printf("Image with %s already present in %s.\n",paramName.c_str(), runDir.c_str());
                 }
@@ -199,9 +205,10 @@ int main(int argc, char *argv[]){
                 printf("Point Particles files could not be found in %s\n",runDir.c_str());
             }
             else {
-                            ipartFileName = runDir + ipartFileName;
+                ipartFileName = runDir + ipartFileName;
                 fpartFileName = runDir + fpartFileName;
 
+                //printf("Part files Init: %s Final: %s \n",ipartFileName.c_str(),fpartFileName.c_str());
 
                 //  Read Initial particle file
                 ipartFile.open(ipartFileName.c_str());
@@ -274,21 +281,28 @@ int main(int argc, char *argv[]){
                 //  Perform some Internal calculations
                 g1.calc_values();
                 g2.calc_values();
+                //printf("%s: %f %f %f %f\n",runName.c_str(),g1.xmax,g1.ymax,g2.xmax,g2.ymax);
                 compare(g1,g2);
                 //printf("calcue g values\n");
 
                 //  Adjust point values to fit on image
                 g1.adj_points(img.cols,img.rows,gaussian_size, g1.fpart);
                 g2.adj_points(img.cols,img.rows,gaussian_size, g2.fpart);
+                //g1.check_points();
+                //printf("Rows: %d Cols: %d \n",img.rows,img.cols);
+                //g2.check_points();
                 //printf("Adjusted points\n");
 
-                //  Write points to image
+                 //  Write points to image
+                //g1.simple_write(img,'f');
+                //g2.simple_write(img,'f');
                 g1.write(img,gaussian_size,gaussian_weight,radial_constant, g1.fpart);
                 g2.write(img,gaussian_size,gaussian_weight,radial_constant, g2.fpart);
                 //printf("Wrote points to image\n");
 
                 //  Normalize pixel brightness and write image
-                normalize_image(img,dest,g2.maxb,4);
+                //dest = img;
+                normalize_image(img,dest,g2.maxb,radial_constant);
                 //printf("Writing image to %s\n",picName.c_str());
                 dest.convertTo(dest,CV_8UC3,255.0);
                 imwrite(picName,dest);
