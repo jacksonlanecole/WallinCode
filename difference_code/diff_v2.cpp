@@ -98,8 +98,15 @@ bool processRun( runData &myRun );
 int main(int argc, char *argv[]){
     cout << endl;
 
+<<<<<<< HEAD
     dirPath = argv[1];
     targetPath = argv[2];
+=======
+    string dirPath, targetPath, targetName, targetInfoPath, scorePath, temp;
+    vector<string> mainDirNames, runDirPath, scoreDirNames, targetDirNames;
+	string targetInfoDir;
+    int g1x,g1y,g2x,g2y;  // target x and y center pixel values;
+>>>>>>> 88616fa90cfcb6891d6e84cf3dad627462e9e593
 
     if ( !processMain())     //  Finds and sorts through main directory.  Returns true or false to continue.
         return 0;
@@ -217,6 +224,10 @@ bool processMain(){
     getDir(mainDirNames,dirPath);
     bool foundTargetDir = false, foundScoreDir = false;
 
+<<<<<<< HEAD
+=======
+    //******     Find and sort Directories     *****//
+>>>>>>> 88616fa90cfcb6891d6e84cf3dad627462e9e593
     for ( unsigned int i=0; i<mainDirNames.size();i++){
         //  Search for run directories
         size_t fRun = mainDirNames[i].find("run");
@@ -232,10 +243,18 @@ bool processMain(){
         }
 
         //  Find target image directory
+<<<<<<< HEAD
         else if ( mainDirNames[i].compare("target_images") == 0 ){
             tempStr = dirPath + mainDirNames[i] + '/';
             getDir(targetDirNames, tempStr);
             foundTargetDir = true;
+=======
+		// CHANGED THE BELOW LINE TO COMPARE TO "targets" RATHER THAN
+		//// "target_images"
+        else if ( mainDirNames[i].compare("targets") == 0 ){
+            temp = dirPath + mainDirNames[i] + '/';
+            getDir(targetDirNames, temp);
+>>>>>>> 88616fa90cfcb6891d6e84cf3dad627462e9e593
             //for (unsigned int j=0; j<targetDirNames.size();j++)
             //    cout<<targetDirNames[j]<<endl;
         }
@@ -290,7 +309,11 @@ bool processTarget(){
         return false;
     }
 
+	/*------------------------------------------------------------------------*/
+	// TEMPORARY(?) FIX: I needed to just specify the location of the
+	//// target info file. This is done in argv[3].
     //*****  Read target info  *****//
+<<<<<<< HEAD
     bool tInfoFound = false;
     for (unsigned int i=0; i<targetDirNames.size();i++){
         size_t fInfo = targetDirNames[i].find("info.txt");
@@ -304,6 +327,31 @@ bool processTarget(){
         cout << "Target Info File not found at "<< targetImg << "Exiting..." << endl;
         return false;
     }
+=======
+	bool tinfoFound = false;
+	size_t fInfo = 1;             // Setting this to 1 so the next logic will
+	                              //// work, I don't want to break anything.
+	if ( fInfo != string::npos ) {
+		tinfoFound = true;
+		//targetInfoPath = dirPath + "targets/" + targetDirNames[i];
+		targetInfoPath = argv[3]; // this argument specifies the whole path
+	}
+	/*------------------------------------------------------------------------*/
+
+	/*------------------------------------------------------------------------*/
+	// COMMENTED THIS OUT. The above temporary fix accomplishes what this does
+	//// but with more of an ad hoc approach.
+    //bool tinfoFound = false;
+    //for (unsigned int i = 0; i < targetDirNames.size(); i++) {
+    //    size_t fInfo = targetDirNames[i].find("info.txt");
+	//	if ( fInfo != string::npos ) {
+	//		tinfoFound = true;
+	//		//targetInfoPath = dirPath + "targets/" + targetDirNames[i];
+	//		targetInfoPath = "./targets/" + targetDirNames[i];
+	//	}
+    //}
+	/*------------------------------------------------------------------------*/
+>>>>>>> 88616fa90cfcb6891d6e84cf3dad627462e9e593
 
     targetInfoFile.open(targetInfoPath.c_str());
     if (targetInfoFile.fail()){
@@ -364,8 +412,13 @@ void processScore(){
 
     //*****  Search for score and human score files *****//
     bool scoreFound = false;
+<<<<<<< HEAD
     for (unsigned int i=0 ; i<scoreDirNames.size() ; i++){
         if (scoreDirNames[i].compare("scores.csv") == 0 ){
+=======
+    for (unsigned int i=0 ; i < scoreDirNames.size() ; i++){
+        if (scoreDirNames[i].compare("scores.csv") == 0 )
+>>>>>>> 88616fa90cfcb6891d6e84cf3dad627462e9e593
             scoreFound = true;
             scorePath = dirPath + "scores/" + scoreDirNames[i];
         }
