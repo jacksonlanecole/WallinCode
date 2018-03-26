@@ -94,7 +94,7 @@ int main(int argc, char *argv[]){
 
     //  Parallization implementation
     int numThreads = omp_get_num_threads();
-    numThreads /= 4;
+    numThreads /= 2;
     #pragma omp parallel num_threads(numThreads)
     {
         #pragma omp for
@@ -107,8 +107,6 @@ int main(int argc, char *argv[]){
             //printf("This should be the run Name: %s\n",runName.c_str());
 
             //  Variables
-            //Mat img(image_rows,image_cols,CV_32F);
-            //Mat dest(image_rows,image_cols,CV_32F);
             Mat img = images[iRun];
             Mat dest = finals[iRun];
             string fpartFileName, ipartFileName, sdssName, infoName, picName, tempStr;
@@ -187,7 +185,7 @@ int main(int argc, char *argv[]){
 
             // Check if image already exists for current parameters
 
-            picName = sdssName + '.' + paramName + ".model.png";
+            picName = sdssName + '.' + runName + '.' + paramName + ".model.png";
 
             for (unsigned int i=0; i<runFiles.size();i++)
             {
