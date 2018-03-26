@@ -29,8 +29,6 @@ Galaxy::Galaxy(){
 }
 
 void Galaxy::delMem(){
-    //  ***NOTE***  If galaxy is created but no memory is allocated
-    //              calling this deconstructor will cause a seg fault
     delete ipart;
     delete fpart;
 }
@@ -163,7 +161,7 @@ void Galaxy::add_center(double x, double y, double z, char state){
         fz = z;
     }
     else
-        printf("Add_center: state not recognized");
+        printf("Galaxy::add_center: state not recognized");
 }
 
 void Galaxy::add_center_circle(Mat &img){

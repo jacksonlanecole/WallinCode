@@ -1,6 +1,6 @@
 gaussian_size 15
 gaussian_weight 2.5
-gaussian_factor 6
+radial_constant 6
 norm_value 4
 image_rows 1000
 image_cols 1000
