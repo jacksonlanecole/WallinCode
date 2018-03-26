@@ -19,7 +19,7 @@ using namespace std;
 
 //  Global Variables
 string dirPath, targetPath, targetName, targetInfoPath, scorePath, hScorePath, temp;
-string scoresDirName = "scores";
+string scoreDirName = "scores";
 string targetDirName = "targets";
 vector<string> mainDirNames, runDirPath, scoreDirNames, targetDirNames;
 vector<int> runNum;
@@ -245,13 +245,7 @@ bool processMainDir(){
             //cout << tempInt << ' ' << runNum.back() << endl;
         }
 
-        //  Find target image directory
-        else if ( mainDirNames[i].compare(targetDirName) == 0 ){
-            tempStr = dirPath + mainDirNames[i] + '/';
-            getDir(targetDirNames, tempStr);
-            foundTargetDir = true;
-        }
-        //  Find score directory
+         //  Find score directory
         else if ( mainDirNames[i].compare(scoreDirName) == 0 ){
             temp = dirPath + mainDirNames[i] + '/';
             getDir(scoreDirNames, temp);
@@ -265,10 +259,6 @@ bool processMainDir(){
     //  Check if directories were found.
     if (runDirPath.size()==0){
         cout << "No run directories detected. Exiting\n";
-        return false;
-    }
-    else if ( !foundTargetDir ){
-        cout << "Target Directory not found.  Exiting\n";
         return false;
     }
     else if ( !foundScoreDir ){
@@ -298,7 +288,8 @@ bool processTarget(){
     //  Load and check target image
     targetImg = imread(targetPath,CV_LOAD_IMAGE_GRAYSCALE);
     if ( !targetImg.data ){
-        cout << "No target image found at " << targetImg << endl;
+        cout << "No data found for image at " << targetImg << endl;
+        cout << "Exiting...\n\n"<<endl;
         return false;
     }
 
@@ -335,7 +326,7 @@ bool processTarget(){
     }
 
     if (!tFound[0] || !tFound[1] || !tFound[2] || !tFound[3] ){
-        cout << "Target information file could not find all pixel coordinates: " << targetInfoPath << "Exiting...\n";
+        cout << "Could not find all pixel coordinates in target info file: " << targetInfoPath << "Exiting...\n";
         return 0;
     }
 
@@ -381,7 +372,7 @@ void processScore(){
         scoreFile << "sdss_name,run_number,target_image,simulated_image,parameters,comparison_method,machine_score,human_score\n";
     }
     else
-        scoreFile.open(scorePath.c_str(),ios::app);
+        scoreFile.open(scorePath.c_str());
 
     if (hScoreFound){
         ifstream hScoreFile(hScorePath.c_str());

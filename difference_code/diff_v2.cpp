@@ -297,7 +297,7 @@ bool processMain(){
     //Sort Run directories and associated numbers
     sort( runDirPath.begin(),runDirPath.end() );
     sort( runNum.begin() , runNum.end() );
-    for (unsigned int i=0; i<runDirPath.size() && false; i++){
+    for (unsigned int i=0; i<runDirPath.size() && false/*disables for loop*/; i++){
         cout << runDirPath[i] << ' ' << runNum[i] << endl;
     }
 
