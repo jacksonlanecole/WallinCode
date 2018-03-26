@@ -157,6 +157,7 @@ int main(int argc, char *argv[]){
     }
 
     cout <<endl;
+    cout << "findme..."<<endl;
     return 0;
 }
 
@@ -171,6 +172,7 @@ void getDir(vector<string> &dirNames, string dirStr){
 }
 
 //  Function does a rudimentary average of pixel brighteness across an image.
+//  Unused calculation of standard deviation
 double rateDiff(const Mat &m1){
 
     int max, min, var1, var2, N, val;
@@ -252,6 +254,12 @@ bool processMainDir(){
             foundScoreDir = true;
             //for (unsigned int j=0; j<scoreDirNames.size();j++)
             //    cout<<scoreDirNames[j]<<endl;
+        }
+        size_t fHumanScores = mainDirNames[i].find("humanscores.txt");
+        if ( fHumanScores != string::npos ){
+            hScoreFound = true;
+            hScorePath = dirPath + mainDirNames[i];
+            //cout << "Found human scores "<< hScorePath<<endl;
         }
         //cout << mainDirNames[i] <<endl;
     }
