@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include "imgClass.hpp"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -89,7 +90,7 @@ struct imgData{
 struct runData{
     string path, infoName, sdssName, runName;
     vector<string> fileNames;
-    vector<imgData> images;
+    vector<imgClass> images;
     ifstream infoFile;
 };
 
@@ -157,7 +158,6 @@ int main(int argc, char *argv[]){
     }
 
     cout <<endl;
-    cout << "findme..."<<endl;
     return 0;
 }
 
@@ -414,7 +414,7 @@ bool processRun( runData &myRun ){
         //printf("%s\n",myRunNames[i].c_str());
         fImg = myRun.fileNames[i].find(".model.png");
         if ( fImg != string::npos ){
-            myRun.images.push_back(imgData(myRun.fileNames[i], myRun.path + myRun.fileNames[i]));
+            myRun.images.push_back(imgClass(myRun.fileNames[i], myRun.path + myRun.fileNames[i]));
             imgFound = true;
         }
         if ( myRun.fileNames[i].compare("info.txt") == 0 )
