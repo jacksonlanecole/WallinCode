@@ -23,7 +23,7 @@ using namespace std;
 
 //  Global Variables
 int thread_count = 1;
-bool overWriteImages = true;
+bool overWriteImages = false;
 bool readRunInfoFile = false;
 string sdss_directory;
 
@@ -121,6 +121,7 @@ int main(int argc, char *argv[]){
             double x,y,z;
             bool picFound = false, infoFound = false;
             bool iFileFound = false, fFileFound = false;
+            bool multPFiles = false;
 
             //printf("runDir: %s\n",runDir.c_str());
 
@@ -137,11 +138,15 @@ int main(int argc, char *argv[]){
                 size_t foundf = runFiles[i].find(".f.");
                 if ( foundi != string::npos ){
                     ipartFileName = runFiles[i];
+                    if (iFileFound == true)
+                        multPFiles = true;
                     iFileFound = true;
                     //printf("Found i file! %s\n",ipartFileName.c_str());
                 }
                 else if ( foundf != string::npos){
                     fpartFileName = runFiles[i];
+                    if (fFileFound)
+                        multPFiles = true;
                     fFileFound = true;
                     //printf("Found f file! %s\n",fpartFileName.c_str());
                 }
@@ -227,8 +232,10 @@ int main(int argc, char *argv[]){
             }
 
 
+            if (multPFiles)
+                printf("Multiple sets of point files found in %s skipping...\n", runDir.c_str());
 
-            if ( !picFound && iFileFound && fFileFound )
+            if ( !picFound && iFileFound && fFileFound && !multPFiles)  // Temp solution to multiple files
             {
 
                 //printf("Pic not found.  Creating\n");
@@ -293,7 +300,7 @@ int main(int argc, char *argv[]){
                 //g2.check_points();
                 //printf("Adjusted points\n");
 
-                 //  Write points to image
+                //  Write points to image
                 //g1.simple_write(img,'f');
                 //g2.simple_write(img,'f');
                 g1.write(img,gaussian_size,gaussian_weight,radial_constant, g1.fpart);
@@ -302,7 +309,7 @@ int main(int argc, char *argv[]){
 
                 //  Normalize pixel brightness and write image
                 //dest = img;
-                normalize_image(img,dest,g2.maxb,radial_constant);
+                normalize_image(img,dest,g2.maxb,norm_value);
                 //printf("Writing image to %s\n",picName.c_str());
                 dest.convertTo(dest,CV_8UC3,255.0);
                 imwrite(picName,dest);
