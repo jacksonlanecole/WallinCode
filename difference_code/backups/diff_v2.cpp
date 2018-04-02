@@ -6,7 +6,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#include "imgClass.hpp"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -20,50 +19,109 @@ using namespace std;
 
 //  Global Variables
 string dirPath, targetPath, targetName, targetInfoPath, scorePath, hScorePath, temp;
-string scoreDirName = "scores";
-string targetDirName = "targets";
 vector<string> mainDirNames, runDirPath, scoreDirNames, targetDirNames;
 vector<int> runNum;
 vector<float> humanScores;
 bool hScoreFound = false;
 ifstream targetInfoFile;
 ofstream scoreFile;
-imgClass target;
+Mat targetImg;
+Point2f targetCenter[3];
+
+
+struct imgData{
+    Mat img, imgFinal, warpMat;
+    string name;
+    string path;
+    string paramName;
+    Point2f imageCenter[3];
+
+    imgData(string nameIn, string pathIn){
+        name = nameIn;
+        path = pathIn;
+
+        size_t fImg = name.find("param");
+        if ( fImg != string::npos ){
+            paramName = name.substr(fImg,9);
+            //cout << paramName<<endl;
+        }
+        else {
+            cout << "could not find parameter name in " << name << endl;
+        }
+    }
+    void addCenter(int x1, int y1, int x2, int y2 ){
+
+        imageCenter[0] = Point2f( x1, y1 );
+        imageCenter[1] = Point2f( x2, y2 );
+        imageCenter[2] = Point2f(imageCenter[0].x+(imageCenter[0].y-imageCenter[1].y)/3,imageCenter[0].y+(imageCenter[1].x-imageCenter[0].x)/3);  // Creates a triangle of points
+    }
+
+
+    bool loadImage(const Mat &targetImg, const Point2f targetCenter[]){
+
+        img = imread(path,CV_LOAD_IMAGE_GRAYSCALE);
+        if ( !img.data ){
+            cout << "Image failed to load " << path << " Skipping...\n";
+            return false;
+        }
+
+        warpMat = getAffineTransform(imageCenter,targetCenter);
+        warpAffine(img,imgFinal,warpMat,targetImg.size());
+
+        return true;
+    }
+
+    void addCircle(){
+        circle(img, imageCenter[0], 10, Scalar(255,255,255),2,8);
+        circle(img, imageCenter[1], 10, Scalar(255,255,255),2,8);
+        circle(img, imageCenter[2], 10, Scalar(255,255,255),2,8);
+    }
+};
 
 
 struct runData{
     string path, infoName, sdssName, runName;
     vector<string> fileNames;
-    vector<imgClass> images;
+    vector<imgData> images;
     ifstream infoFile;
 };
 
 //  Function Prototypes
 double rateDiff(const Mat &m1);
-double rateDiff_v2(const Mat &m1);
-Scalar getMSSIM( const Mat& i1, const Mat& i2);
 void getDir(vector<string> &vstr, string dirName);
-bool processMainDir();
+bool processMain();
 bool processTarget();
 void processScore();
 bool processRun( runData &myRun );
 
-// compile and run info
-// g++ -ggdb difference_code/diff.cpp -o diff.out `pkg-config --cflags --libs opencv`
-// ./diff.out  main_directory  target_image target_image_info.txt
+//  Delete once done
+/*
+ *
+//  Global Variables
+string dirPath, targetPath, targetName, targetInfoPath, scorePath, hScorePath, temp;
+vector<string> mainDirNames, runDirPath, scoreDirNames, targetDirNames;
+vector<int> runNum;
+vector<float> humanScores;
+bool hScoreFound = false;
+ifstream targetInfoFile;
+ofstream scoreFile;
+Mat targetImg;
+Point2f targetCenter[3];
+ */
+
+
+// $: ./diff.exe  main_directory  target_image
 int main(int argc, char *argv[]){
     cout << endl;
 
     dirPath = argv[1];
     targetPath = argv[2];
-    targetInfoPath = argv[3];
 
-    if ( !processMainDir())  //  Finds and sorts through main directory.  Returns true or false to continue.
+    if ( !processMain())     //  Finds and sorts through main directory.  Returns true or false to continue.
         return 0;
     if ( !processTarget())   //  Processes target data and info data.
         return 0;
     processScore();     //  Search score directory and check for human and score file
-
 
     //*****     Main Loop     *****//
     for ( unsigned int iRun=0 ; iRun < runDirPath.size() ; iRun++ )
@@ -72,38 +130,25 @@ int main(int argc, char *argv[]){
 
         runData myRun;
         myRun.path = runDirPath[iRun];
+
         //cout << "mypath "<< myRun.path <<endl;
-        //
-        bool runGood = processRun(myRun);  // processes run directory for required files
-        if (runGood){
+
+        if (processRun(myRun)){
 
             for(unsigned int iImg=0; iImg < myRun.images.size() ; iImg++ ){
 
-                //  tell imgData to read image and alter it according to target data
-                bool imgGood = myRun.images[iImg].loadImage();
-                if (imgGood){
+                if ( myRun.images[iImg].loadImage(targetImg,targetCenter)){
 
                     Mat  diffMat;
                     double score;
-                    Scalar simScore;
-                    myRun.images[iImg].processImg(target);
-                    myRun.images[iImg].normBrightness(target);
-                    myRun.images[iImg].createAltSizes();
-                    absdiff(target.imgFinal,myRun.images[iImg].imgFinal,diffMat);
-                    //score = rateDiff(diffMat);
-                    //simScore = getMSSIM(target.img256,myRun.images[iImg].img256);
-                    //cout << simScore[0] << endl;
-                    imwrite(myRun.path + "sample.png",diffMat);
-                    //temp = myRun.path+myRun.sdssName+'.' + myRun.runName + '.' + myRun.images[iImg].paramName+".diff.png",
-                    //imwrite(temp,diffMat);
-                    //diffMat.release();
-
+                    absdiff(targetImg,myRun.images[iImg].imgFinal,diffMat);
                     score = rateDiff(diffMat);
-                    score = (score -.95)*20;
-                    if (score<0)
-                        score = 0;
 
-                    scoreFile << myRun.sdssName <<','<< myRun.runName  <<','<< targetName  <<','<< myRun.images[iImg].name  <<','<< myRun.images[iImg].paramName  <<','<< "absDiff_v2"<<',' <<score<<',';
+                    temp = myRun.path+myRun.sdssName+'.' + myRun.runName + '.' + myRun.images[iImg].paramName+".diff.png",
+                    imwrite(temp,diffMat);
+                    diffMat.release();
+
+                    scoreFile << myRun.sdssName <<','<< myRun.runName  <<','<< targetName  <<','<< myRun.images[iImg].name  <<','<< myRun.images[iImg].paramName  <<','<< "diff_v1"<<',' <<score<<',';
                     if (hScoreFound)
                         scoreFile<<humanScores[runNum[iRun]];
                     scoreFile << endl;
@@ -119,8 +164,6 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
-//  Function is given the path to a directory and an empty vector of string.
-//  Will fill the vector with names of files inside the directory
 void getDir(vector<string> &dirNames, string dirStr){
     //printf("Loading directory %s into vector\n",dirStr.c_str());
     DIR* dirp = opendir(dirStr.c_str());
@@ -130,47 +173,6 @@ void getDir(vector<string> &dirNames, string dirStr){
 }
 
 
-Scalar getMSSIM( const Mat& i1, const Mat& i2)
-{
-    const double C1 = 6.5025, C2 = 58.5225;
-    /***************************** INITS **********************************/
-    int d = CV_32F;
-    Mat I1, I2;
-    i1.convertTo(I1, d);            // cannot calculate on one byte large values
-    i2.convertTo(I2, d);
-    Mat I2_2   = I2.mul(I2);        // I2^2
-    Mat I1_2   = I1.mul(I1);        // I1^2
-    Mat I1_I2  = I1.mul(I2);        // I1 * I2
-    /*************************** END INITS **********************************/
-    Mat mu1, mu2;                   // PRELIMINARY COMPUTING
-    GaussianBlur(I1, mu1, Size(11, 11), 1.5);
-    GaussianBlur(I2, mu2, Size(11, 11), 1.5);
-    Mat mu1_2   =   mu1.mul(mu1);
-    Mat mu2_2   =   mu2.mul(mu2);
-    Mat mu1_mu2 =   mu1.mul(mu2);
-    Mat sigma1_2, sigma2_2, sigma12;
-    GaussianBlur(I1_2, sigma1_2, Size(11, 11), 1.5);
-    sigma1_2 -= mu1_2;
-    GaussianBlur(I2_2, sigma2_2, Size(11, 11), 1.5);
-    sigma2_2 -= mu2_2;
-    GaussianBlur(I1_I2, sigma12, Size(11, 11), 1.5);
-    sigma12 -= mu1_mu2;
-    Mat t1, t2, t3;
-    t1 = 2 * mu1_mu2 + C1;
-    t2 = 2 * sigma12 + C2;
-    t3 = t1.mul(t2);                 // t3 = ((2*mu1_mu2 + C1).*(2*sigma12 + C2))
-    t1 = mu1_2 + mu2_2 + C1;
-    t2 = sigma1_2 + sigma2_2 + C2;
-    t1 = t1.mul(t2);                 // t1 =((mu1_2 + mu2_2 + C1).*(sigma1_2 + sigma2_2 + C2))
-    Mat ssim_map;
-    divide(t3, t1, ssim_map);        // ssim_map =  t3./t1;
-    Scalar mssim = mean(ssim_map);   // mssim = average of ssim map
-    return mssim;
-}
-
-
-//  Function does a rudimentary average of pixel brighteness across an image.
-//  Unused calculation of standard deviation
 double rateDiff(const Mat &m1){
 
     int max, min, var1, var2, N, val;
@@ -205,32 +207,10 @@ double rateDiff(const Mat &m1){
     return score;
 }
 
-double rateDiff_v2(const Mat &m1){
-
-    int val;
-    long int Sum=0;
-    int count;
-    double score;
-	for (int i=0;i<m1.rows;i++){
-		for (int j=0;j<m1.cols;j++){
-			val = m1.at<uint8_t>(i,j);
-            if (val>0 && val<256){
-                count++;
-                Sum += val;
-            }
-            else if (val >= 256)
-                cout << val <<endl;
-        }
-	}
-
-    score = 1.0-1.0*Sum/count/255;
-    return score;
-    //return score;
-}
 
 
-//  Function does many processes for looking through main Directory
-bool processMainDir(){
+
+bool processMain(){
 
     string tempStr;
 
@@ -267,26 +247,39 @@ bool processMainDir(){
             //cout << tempInt << ' ' << runNum.back() << endl;
         }
 
-         //  Find score directory
-        else if ( mainDirNames[i].compare(scoreDirName) == 0 ){
+        //  Find target image directory
+        else if ( mainDirNames[i].compare("target_images") == 0 ){
+            tempStr = dirPath + mainDirNames[i] + '/';
+            getDir(targetDirNames, tempStr);
+            foundTargetDir = true;
+        }
+		// CHANGED THE BELOW LINE TO COMPARE TO "targets" RATHER THAN
+		//// "target_images"
+        else if ( mainDirNames[i].compare("targets") == 0 ){
+            temp = dirPath + mainDirNames[i] + '/';
+            getDir(targetDirNames, temp);
+            foundTargetDir = true;
+            //for (unsigned int j=0; j<targetDirNames.size();j++)
+            //    cout<<targetDirNames[j]<<endl;
+        }
+
+        //  Find score directory
+        else if ( mainDirNames[i].compare("scores") == 0 ){
             temp = dirPath + mainDirNames[i] + '/';
             getDir(scoreDirNames, temp);
             foundScoreDir = true;
             //for (unsigned int j=0; j<scoreDirNames.size();j++)
             //    cout<<scoreDirNames[j]<<endl;
         }
-        size_t fHumanScores = mainDirNames[i].find("humanscores.txt");
-        if ( fHumanScores != string::npos ){
-            hScoreFound = true;
-            hScorePath = dirPath + mainDirNames[i];
-            //cout << "Found human scores "<< hScorePath<<endl;
-        }
-        //cout << mainDirNames[i] <<endl;
     }
 
     //  Check if directories were found.
     if (runDirPath.size()==0){
         cout << "No run directories detected. Exiting\n";
+        return false;
+    }
+    else if ( !foundTargetDir ){
+        cout << "Target Directory not found.  Exiting\n";
         return false;
     }
     else if ( !foundScoreDir ){
@@ -314,17 +307,27 @@ bool processMainDir(){
 bool processTarget(){
 
     //  Load and check target image
-    target.path = targetPath;
-    bool tempBool = target.loadImage();
-    if (!tempBool){
-         cout << "No data found for image at " << target.path << endl;
-        cout << "Exiting...\n\n"<<endl;
+    targetImg = imread(targetPath,CV_LOAD_IMAGE_GRAYSCALE);
+    if ( !targetImg.data ){
+        cout << "No target image found at " << targetImg << endl;
         return false;
     }
-    target.processTargetImg();
-    target.createAltSizes();
 
     //*****  Read target info  *****//
+    bool tInfoFound = false;
+    for (unsigned int i=0; i<targetDirNames.size();i++){
+        size_t fInfo = targetDirNames[i].find("info.txt");
+        if ( fInfo != string::npos ){
+            tInfoFound = true;
+            targetInfoPath = dirPath + "target_images/" + targetDirNames[i];
+            //cout << targetInfoPath << endl;
+        }
+    }
+    if ( !tInfoFound ){
+        cout << "Target Info File not found at "<< targetImg << "Exiting..." << endl;
+        return false;
+    }
+
     targetInfoFile.open(targetInfoPath.c_str());
     if (targetInfoFile.fail()){
         cout << "Target information file not found at " << targetInfoPath << endl;
@@ -332,41 +335,49 @@ bool processTarget(){
         return false;
     }
 
-    bool newTarget = true;
-    if (newTarget){
-        //  Read info file searching pixel coordinates for centers of galaxies.
-        size_t tFind[5];
-        bool tFound[4] = {0,0,0,0};
-        float tempFlt;
-        int pixel[4];
-        while(targetInfoFile>>temp){
-            tFind[0] = temp.find("pxc");
-            tFind[1] = temp.find("pyc");
-            tFind[2] = temp.find("sxc");
-            tFind[3] = temp.find("syc");
-            tFind[4] = temp.find('.');
-            for(int i=0;i<4;i++){
-                if(tFind[i] != string::npos){
-                    tFound[i]=true;
-                    stringstream tempStrm;
-                    tempStrm << temp.substr(4,temp.length()-4);
-                    tempStrm >> tempFlt;
-                    pixel[i] = int(tempFlt);
-                    //cout <<temp<<' '<<lines[i]<<' ' << tempFlt << ' ' << pixel[i] << endl;
-                }
+    //  Read info file searching pixel coordinates for centers of galaxies.
+    size_t tFind[5];
+    bool tFound[4] = {0,0,0,0};
+    float tempFlt;
+    int pixel[4];
+    while(targetInfoFile>>temp){
+        tFind[0] = temp.find("pxc");
+        tFind[1] = temp.find("pyc");
+        tFind[2] = temp.find("sxc");
+        tFind[3] = temp.find("syc");
+        tFind[4] = temp.find('.');
+        for(int i=0;i<4;i++){
+            if(tFind[i] != string::npos){
+                tFound[i]=true;
+                stringstream tempStrm;
+                tempStrm << temp.substr(4,temp.length()-4);
+                tempStrm >> tempFlt;
+                pixel[i] = int(tempFlt);
+                //cout <<temp<<' '<<lines[i]<<' ' << tempFlt << ' ' << pixel[i] << endl;
             }
-            //cout << temp << endl;
         }
+        //cout << temp << endl;
+    }
 
-        if (!tFound[0] || !tFound[1] || !tFound[2] || !tFound[3] ){
-            cout << "Could not find all pixel coordinates in target info file: " << targetInfoPath << "Exiting...\n";
-            return false;
-        }
+    if (!tFound[0] || !tFound[1] || !tFound[2] || !tFound[3] ){
+        cout << "Target information file could not find all pixel coordinates: " << targetInfoPath << "Exiting...\n";
+        return 0;
+    }
 
-        //  Processing and Saving Coordinates
-        pixel[3] = target.imgFinal.cols - pixel[3];  // Changing starting count from lower left to upper left.
-        target.addCenter(pixel[0],pixel[1],pixel[2],pixel[3]);
+    //  Processing and Saving Coordinates
+    pixel[3] = targetImg.cols - pixel[3];  // Changing starting count from lower left to upper left.
+    targetCenter[0] = Point2f(pixel[0],pixel[1]);
+    targetCenter[1] = Point2f(pixel[2],pixel[3]);
+	targetCenter[2] = Point2f(targetCenter[0].x+(targetCenter[0].y-targetCenter[1].y)/3,targetCenter[0].y+(targetCenter[1].x-targetCenter[0].x)/3);
 
+    //  Troubleshooting purposes only
+    //  Testing to see if point appear to be on centers
+
+    if(false){
+        circle(targetImg, targetCenter[0], 10, Scalar(255,255,255),2,8);
+        circle(targetImg, targetCenter[1], 10, Scalar(255,255,255),2,8);
+        circle(targetImg, targetCenter[2], 10, Scalar(255,255,255),2,8);
+        imwrite(dirPath+"target_images/circles.png",targetImg);
     }
 
     return true;
@@ -395,7 +406,7 @@ void processScore(){
         scoreFile << "sdss_name,run_number,target_image,simulated_image,parameters,comparison_method,machine_score,human_score\n";
     }
     else
-        scoreFile.open(scorePath.c_str());
+        scoreFile.open(scorePath.c_str(),ios::app);
 
     if (hScoreFound){
         ifstream hScoreFile(hScorePath.c_str());
@@ -429,7 +440,7 @@ bool processRun( runData &myRun ){
         //printf("%s\n",myRunNames[i].c_str());
         fImg = myRun.fileNames[i].find(".model.png");
         if ( fImg != string::npos ){
-            myRun.images.push_back(imgClass(myRun.fileNames[i], myRun.path + myRun.fileNames[i]));
+            myRun.images.push_back(imgData(myRun.fileNames[i], myRun.path + myRun.fileNames[i]));
             imgFound = true;
         }
         if ( myRun.fileNames[i].compare("info.txt") == 0 )
