@@ -51,7 +51,6 @@ To install the required packages, issue the following command:
 pip install -r requirements.txt
 ```
 
-
 ## Target Images<a id="target_images">
 Real images of the target galaxies are contained in the `target_images`
 directory. These are to be used as the reference images for comparison in
