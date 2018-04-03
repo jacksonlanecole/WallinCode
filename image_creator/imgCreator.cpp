@@ -9,8 +9,6 @@ Galaxy::Galaxy(){
     xmax = xmin = ymax = ymin = 0;
     maxb2 = 0;
     numThreads = 1;
-    //xmin = ymin = -2.5;  // fixed max and min
-    //xmax = ymax = 2.5;
 }
 
 void Galaxy::delMem(){
@@ -374,12 +372,30 @@ void ImgCreator::makeImage(){
 	normalize_image(g2.maxb);
 	dest.convertTo(dest,CV_8UC3,255.0);
 	imwrite(picName,dest);
+	
+	writeInfo();
+	//writeInfoPlus();
 
+
+
+
+}
+
+void ImgCreator::writeInfo(){
 	//  Write to info file about pixel centers
 	infoFileOut << param.name << ' ' << int(g1.fx) << ' ' << int(g1.fy) << ' ' << int(g2.fx) << ' ' << int(g2.fy) << endl;
+	infoFileOut.close();	
+}
+
+
+
+
+
+void ImgCreator::writeInfoPlus(){
+		//  Write to info file about pixel centers
+	infoFileOut << param.name << ' ' << int(g1.fx) << ' ' << int(g1.fy) << ' ' << int(g2.fx) << ' ' << int(g2.fy);
+	infoFileOut << ' ' << param.gaussian_weight << ' ' << param.radial_constant << ' ' << param.norm_value << endl;
 	infoFileOut.close();
-
-
 }
 
 

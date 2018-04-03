@@ -107,6 +107,8 @@ public:
 	bool prepare();	
 	void compare(Galaxy &g1, Galaxy &g2);
 	void makeImage();
+	void writeInfo();
+	void writeInfoPlus();
 	void normalize_image(float max);
 	void getDir(vector<string> &myVec, string dirPath);
 	void delMem();
