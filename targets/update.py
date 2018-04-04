@@ -22,7 +22,14 @@ def main():
         for line in f:
             all_targets.append(line.rstrip())
 
-    remaining = set(all_targets).difference(done)
+    had_problems = []
+    with open('had_problems.txt', 'r') as f:
+        for line in f:
+            if not line.startswith("#"):
+                had_problems.append(line.rstrip())
+
+    remaining = \
+    set(all_targets).difference(done).difference(had_problems)
     with open('remaining.txt','w') as f:
         for t in remaining:
             f.write(t + '\n')
