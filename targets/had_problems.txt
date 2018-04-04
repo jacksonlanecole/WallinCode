@@ -4,3 +4,5 @@ hst_NGC_6786
 # Image source not great, outside SDSS footprint
 587741532784361481
 # Which ones are the interacting pair? Are they overlapping?
+587746029596311590
+# Would not download queried parameters
