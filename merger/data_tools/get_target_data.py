@@ -66,7 +66,7 @@ def get_target_data(dest_path, switcher, target_given):
         mkdir(dest_path)
 
     for target_number, target in zip(target_to_download, target_name):
-        target_gz = dest_path + '/{}.txt.gz'.format(target_name)
+        target_gz = dest_path + '/{}.txt.gz'.format(target)
         url = _base + paths_for_url[target_number]
         #system('wget -qO ' + target_gz + ' ' + url)
         r = requests.get(url, stream=True)
