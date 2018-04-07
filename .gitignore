@@ -22,3 +22,5 @@ temp.txt
 env
 temp
 input/test
+nohup*
+a.*
