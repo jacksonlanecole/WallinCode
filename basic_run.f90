@@ -56,7 +56,7 @@ program basic_run
 
 !      call CREATE_IMAGES
 
-  fname = trim(outfilename) // ".000"
+  fname = trim(outfilename) // "_" // trim(distinguisher) // ".000"
   open(unit, file=trim(fname))
   call OUTPUT_PARTICLES(unit, x0, mass1, mass2, &
        eps1, eps2, &
@@ -83,7 +83,8 @@ program basic_run
   enddo
 
 !      call CREATE_IMAGES
-  fname = trim(outfilename) // ".101"
+  fname = trim(outfilename) // "_" // trim(distinguisher) // ".101"
+  !fname = trim(outfilename) // ".101"
   open(unit, file=trim(fname))
   call OUTPUT_PARTICLES(unit, x0, mass1, mass2, &
        eps1, eps2, &

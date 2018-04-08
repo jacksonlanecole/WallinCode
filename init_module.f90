@@ -81,6 +81,7 @@ use df_module
 
 
   character (len=100) :: outfilename
+  character (len=15) :: distinguisher
   integer (kind=4) :: showsteps
 
 !
@@ -160,14 +161,14 @@ subroutine create_collision()
 
   ! determine if we need to calculate tStart
   if( .NOT. tIsSet ) then
-	rv4min = (/sec_vec(1), sec_vec(2), sec_vec(3), -sec_vec(4), -sec_vec(5), -sec_vec(6), 0.0d0/)
-	tminVals = getTStart(rv4min, mass1, mass2, sqrt(eps1), sqrt(eps2) , h,-30.0d0 ,10.0d0*(rout1), rout1, rout2)
-		
-	tmpT = tminVals(1)
-	if ( tmpT < -12.0 ) then
-	  tmpT = -5
-	endif
-		
+    rv4min = (/sec_vec(1), sec_vec(2), sec_vec(3), -sec_vec(4), -sec_vec(5), -sec_vec(6), 0.0d0/)
+    tminVals = getTStart(rv4min, mass1, mass2, sqrt(eps1), sqrt(eps2) , h,-30.0d0 ,10.0d0*(rout1), rout1, rout2)
+
+    tmpT = tminVals(1)
+    if ( tmpT < -12.0 ) then
+      tmpT = -5
+    endif
+
 	if ( abs(tmpT) < h) then
 	  tmpT = -5
 	endif
@@ -242,6 +243,7 @@ end subroutine take_a_step
     integer:: i
     character *50 :: shortbuff
 
+
     tIsSet = .false.
 ! If command line arguments were passed, set them here
   narg = IARGC()
@@ -250,6 +252,8 @@ end subroutine take_a_step
   outfilename = "a"
   fname = ""
   tstart = -5
+  distinguisher = "1"
+
   if (narg > 1) then
      do i = 1, narg-1, 2
         call GETARG(i,buffer)
@@ -289,6 +293,12 @@ end subroutine take_a_step
               read(shortbuf,*) tstart
               tIsSet = .true.
               time = tstart
+
+        case("-m")
+            call GETARG(i+1, buffer)
+            shortbuf = TRIM(buffer)
+            distinguisher = shortbuf
+
 
            case default
               print*, "default run"
