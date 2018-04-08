@@ -26,9 +26,10 @@ def main(argv):
     else:
         print('run_multiple accepts the following command line'\
                 ' options:\n')
-        print('    -i : run interactively\n'\
+        print('    -i  : run interactively\n'\
               '    -bi : batch process (interactively...)\n'\
-              '    -b : batch process')
+              '    -b  : batch process\n'\
+              '    -bm : batch process on multiple cores')
         print()
         print('NOTE: -i and -b are mutually exclusive.')
 
@@ -161,12 +162,18 @@ def deal_with_args(argv):
         if len(argv) < 3:
             print('No batch_run_files specified...')
         else:
+            # ---------------------------------------------------------
+            # The third CL arg is the number of cores requested to be
+            ## used. If the number of cores requested is greater than
+            ## half of the total number of cores on the machine, nothing
+            ## is executed.
             cores_requested = int(argv[2])
             if cores_requested > mp.cpu_count() / 2:
                 print("ERROR: Per my rules, you shall not use more "
                         "than HALF of available CPUs.")
                 print("There are " + mp.cpu_count() / 2 + "cores "
                         "available.")
+            # ---------------------------------------------------------
 
             else:
                 for batch_run_file in argv[3:]:
@@ -183,12 +190,18 @@ def deal_with_args(argv):
                         n2_particles = int(line[2])
                         first_run    = int(line[3]) - 1
                         last_run     = int(line[4]) - 1
+                        if len(line) == 6:
+                            if line[5] == "ALL":
+                                do_all = True
+                        else:
+                            do_all = False
+
 
                         get_target_data('input', 1, name)
 
                         filename = './input/' + name + '.txt'
                         init_value_strings, run_list = get_init(
-                        filename, first_run, last_run)
+                        filename, first_run, last_run, do_all)
 
                         path_to_info_file = './targets/' + name + '/' + name + \
                         '.info.txt'
@@ -200,16 +213,22 @@ def deal_with_args(argv):
 
                         mergers_master.append(mergers)
 
-                processes = []
+                #processes = []
+                all_mergers = []
                 for mergers in mergers_master:
                     for merger in mergers:
-                        processes.append(mp.Process(target =
-                            get_runs_scores_and_wipe, args=(merger,)))
+                        all_mergers.append(merger)
+                        #processes.append(mp.Process(target =
+                        #    get_runs_scores_and_wipe,
+                        #    args=(merger,cores_requested)))
 
                 #######################################################
                 # Now, I just need to add a method for distributing
                 ## processes among available cores (within reason).
-
+                with mp.Pool(processes = cores_requested) as pool:
+                    result = pool.map_async(get_runs_scores_and_wipe_unpack,
+                            zip(all_mergers, range(len(all_mergers))))
+                    result.get()
 
 
     else:
@@ -242,12 +261,20 @@ def how_many_runs():
     return first_run, last_run
 
 
-def get_init(filename, first_run, last_run):
+def get_init(filename, first_run, last_run, do_all = False):
     """Get the initial value strings from the target file"""
     init_value_strings = []
-    for i, line in enumerate(open(filename, 'r')):
-        if i in range(first_run - 1, last_run):
+    if not do_all:
+        for i, line in enumerate(open(filename, 'r')):
+            if i in range(first_run - 1, last_run):
+                init_value_strings.append(line.split('\t')[1].strip())
+
+    else:
+        first_run = 0
+        for i, line in enumerate(open(filename, 'r')):
             init_value_strings.append(line.split('\t')[1].strip())
+
+        last_run = i
 
     run_list = range(first_run - 1, last_run)
 
@@ -269,7 +296,7 @@ def setup_target_structure(filename, run_number, n1_particles,
     return target_dirs
 
 
-def wipe(merger):
+def wipe(merger, distinguisher = 1):
     """The current configuration of this program outputs ALL runfiles
     in the root directory where run_multiple is called. This function
     uses the Structure module in the data_tools package to create the
@@ -292,7 +319,7 @@ def wipe(merger):
     run_number = str(merger.run + 1).zfill(4)
 
     for file_name in [f for f in listdir('.') if path.isfile(f)]:
-        if (file_name.startswith('a.')):
+        if (file_name.startswith("a_"+str(distinguisher))):
             extension = path.splitext(file_name)[1][1:]
             rename(file_name, (merger.target_dirs.full_path +
                     '{sdssid}.{run_no}.{ext}.{n1}.{n2}.txt'.format(
@@ -304,12 +331,17 @@ def wipe(merger):
                         n2     = merger.secondary.particles,)))
 
 
-def get_runs_scores_and_wipe(merger):
-    system('./basic_run -n1 {} -n2 {} {}'
-            .format(merger.primary.particles,
+def get_runs_scores_and_wipe(merger, distinguisher = 1):
+    system('./basic_run -m {} -n1 {} -n2 {} {}'
+            .format(distinguisher,
+                    merger.primary.particles,
                     merger.secondary.particles,
                     merger.init))
-    wipe(merger)
+    wipe(merger, distinguisher)
+
+
+def get_runs_scores_and_wipe_unpack(zipped):
+    get_runs_scores_and_wipe(zipped[0], zipped[1])
 
 
 #def add_process(new_process):
