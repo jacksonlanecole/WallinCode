@@ -15,10 +15,15 @@ int main(int argc, char *argv[]){
 	bool printStdWarnings = true;
 	string sdss_directory;
 
-
     cout << endl;
     //  Get main Directory
     string mainPath = argv[1];
+	
+	//  Add '/' to directory string if not already present
+    string temp = mainPath.substr(mainPath.size()-1,1);
+    if (temp != "/")
+        mainPath = mainPath + '/';
+
 
     // Open parameter file and save name
     string tempParam = argv[2];
@@ -29,23 +34,13 @@ int main(int argc, char *argv[]){
 	paramStruct param;
 	param.loadParam(paramfile);
 	paramfile.close();
-	
-	if (false){
-		cout << "Param Name is " << param.name << endl;
-		cout << param.gaussian_weight<<endl;
-		cout << param.image_cols<<endl;
-	}
 
-    //  Add '/' to directory string if not already present
-    string temp = mainPath.substr(mainPath.size()-1,1);
-    if (temp != "/")
-        mainPath = mainPath + '/';
 
-	
+	//  Grab run folders
     vector<string> runNames;
-    getDir(runNames,mainPath);
-    runNames.erase(remove_if(runNames.begin(),runNames.end(),removeFromDirectory),runNames.end());
-	sort(runNames.begin(), runNames.end()); 
+    getDir(runNames,mainPath); // get all files/folders in directory.
+    runNames.erase(remove_if(runNames.begin(),runNames.end(),removeFromDirectory),runNames.end());  // filter.
+	sort(runNames.begin(), runNames.end()); // sort
 	
     if (runNames.size()==0){
         printf("No run directories found in %s\nExiting...\n",mainPath.c_str());
@@ -54,19 +49,29 @@ int main(int argc, char *argv[]){
 
 
     //  Parallization implementation
-    int numThreads = omp_get_num_threads();
-    numThreads /= 2;
-    #pragma omp parallel num_threads(numThreads)    
-	{
+	int numThreads;
+	#pragma omp parallel
+		numThreads = omp_get_num_threads();
+    numThreads /= 2;  // Only use half of available threads. 
+	
+	printf("Using %d threads\n",numThreads);
+	
+    #pragma omp parallel num_threads(numThreads)  
+	{		
 		#pragma omp for
-		for (int unsigned iRun=0; iRun < 10 /*runNames.size()*/; iRun++)
+		for (int unsigned iRun=0; iRun < runNames.size(); iRun++)
 		{
+			//printf("In thread %d \n",omp_get_thread_num());
 			string tempStr = mainPath + runNames[iRun]+'/';
-			ImgCreator myCreator( tempStr, overWriteImages, printStdWarnings, param, 1);			
-			if(myCreator.prepare()){
-				myCreator.makeImage();
+			//ImgCreator *myCreator;
+			//myCreator = new ImgCreator(tempStr, param, overWriteImages, printStdWarnings);			
+			ImgCreator myCreator(tempStr, param, overWriteImages, printStdWarnings);			
+			if( myCreator.prepare() ){
+				myCreator.makeImage2();
+				myCreator.writeInfo();
 				myCreator.delMem();
 			}	
+			//delete myCreator;
 		}
     }
 
