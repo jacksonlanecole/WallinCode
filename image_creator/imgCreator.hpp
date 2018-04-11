@@ -56,6 +56,19 @@ struct paramStruct{
 			else
 				printf("Parameter %s not found\n",str.c_str());
 		}
+		
+		if (gaussian_size%2==0)
+			gaussian_size--;
+	}
+	
+	void print(){
+		cout << "param: " << name <<endl;
+		cout << "gaussian_size " << gaussian_size << endl;
+		cout << "gaussian_weight " << gaussian_weight << endl;
+		cout << "radial_constant " << radial_constant << endl;
+		cout << "norm_value " << norm_value << endl;
+		cout << "image_rows " << image_rows << endl;
+		cout << "image_cols " << image_cols << endl;
 	}
 };
 
@@ -74,7 +87,9 @@ public:
 
 	void read(ifstream& infile,int part, char state);
 	void write(Mat &img, int gsize, float weight, float radial_constant, point *pts);
+	void write(Mat &img, const Mat &blur, int gsize, float rconst, char state);
     void simple_write( Mat &img, char state);
+	void dot_write(Mat &img,char state);
 	void calc_values();
 	void adj_points(int xsize, int ysize, int gsize, point *pts);
 	void add_center(double x, double y, double z, char state);
@@ -84,11 +99,13 @@ public:
 };
 
 
+
+
 class ImgCreator
 {
 public:
 	int numThreads;
-	Mat img, dest;
+	Mat img, dest, blur, imgTemp;
 	string runDir, runName, sdssName, infoName, picName;
 	string fpartFileName, ipartFileName; 
 	vector<string> runFiles;
@@ -102,14 +119,22 @@ public:
 	bool picFound, infoFound , iFileFound , fFileFound , multPFiles;
 	bool printStdWarning, overWriteImages;
 	
-	ImgCreator(string in, bool warnIn, bool overIn, paramStruct paramIn, int numT);
+	ImgCreator(string in, paramStruct paramIn);
+	ImgCreator(string in, paramStruct paramIn, bool overIn, bool warnIn);
+	ImgCreator(int numThreadIn, string in, paramStruct paramIn, bool overIn, bool warnIn);
+	ImgCreator(string in, paramStruct paramIn, bool overIn, bool warnIn, int numThreadIn);
 	
 	bool prepare();	
+	void changeParam(paramStruct paramIn);
 	void compare(Galaxy &g1, Galaxy &g2);
+	void makeGaussianBlur();
+	void makeImage2();
 	void makeImage();
+	void makeImageOLD();
 	void writeInfo();
 	void writeInfoPlus();
 	void normalize_image(float max);
+	void normalize_image2();
 	void getDir(vector<string> &myVec, string dirPath);
 	void delMem();
 
