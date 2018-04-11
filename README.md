@@ -4,7 +4,7 @@
 - [Overview](#overview)
 - [Get Started](#getstarted)
 - [Targets Directory](#targets)
-- [run_multiple](#run_multiple)
+- [run_multiple.py](#run_multiple.py)
 - [data_tools](#data_tools)
 - [image_creator](#image_creator)
 - [comparison_code](#comparison_code)
@@ -60,8 +60,8 @@ To my knowledge, the original dataset is based off of images from SDSS DR7, but
 the image directory will contain processed images of those same targets using
 data from SDSS DR14.
 
-## run_multiple<a id="run_multiple">
-This fork of WallinCode contains run_multiple, a python3 script that runs
+## run_multiple.py<a id="run_multiple.py">
+This fork of WallinCode contains `run_multiple.py`, a python3 script that runs
 specific runs or specific ranges of runs from the overlapping galaxy pairs
 table at
 [https://data.galaxyzoo.org/mergers.html](https://data.galaxyzoo.org/mergers.html).
@@ -70,7 +70,6 @@ All target input files have been provided in the `input` directory.
 **NOTE:** The input files in the `input` directory contain only the run
 information for runs that recieved a human score in the Galaxy Zoo: Mergers
 project. There are 66,395 total runs in all of the input files combined.
-
 
 ```
 run_multiple accepts the following command line options:
@@ -83,16 +82,8 @@ run_multiple accepts the following command line options:
 NOTE: -i and -b are mutually exclusive.
 ```
 
-To use run_multiple, enter
+**WORKING ON ADDING USAGE INFORMATION...**
 
-`./run_multiple file_containing_data.txt`
-
-The script will then ask if you want to run only one run from the file or multiple.
-Then you will be asked for the run numbers for a specific range of runs. The run
-numbers correspond to the line number in the file. The output files are then
-organized in the following way:
-
-`./ouput/target_name(which is really the filename preceeding the extension)/run_number`
 
 ## data_tools<a id="data_tools">
 This is a package that will contain any data tools that can be written as a
