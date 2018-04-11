@@ -17,25 +17,15 @@ from os import system, path, mkdir, chdir, rename, walk, listdir
 from merger import MergerRun, data_tools
 from data_tools import Structure, get_target_data
 from numpy import genfromtxt
-import multiprocessing as mp
+from multiprocessing import Pool
 
 def main(argv):
-    if len(argv) > 1:
-        deal_with_args(argv)
-
-    else:
-        print('run_multiple accepts the following command line'\
-                ' options:\n')
-        print('    -i  : run interactively\n'\
-              '    -bi : batch process (interactively...)\n'\
-              '    -b  : batch process\n'\
-              '    -bm : batch process on multiple cores')
-        print()
-        print('NOTE: -i and -b are mutually exclusive.')
-
-
-def deal_with_args(argv):
+    """This program accepts command line arguments, and they are dealt
+    with here.
+    """
     if argv[1] == '-i':
+        """This handles interactive (-i) processing.
+        """
         yes = frozenset(['yes', 'y'])
         if (input('Do you need to download any input files? '\
                 '(yes/no)\n> ').lower() in yes):
@@ -70,6 +60,8 @@ def deal_with_args(argv):
             get_runs_scores_and_wipe(merger)
 
     elif argv[1] == '-bi':
+        """This handles batch processing... interactively (-bi).
+        """
         if path.isdir('./batch_run_files/') == False:
             mkdir('./batch_run_files')
             with open('./batch_run_files/sample.txt', 'w') as f:
@@ -123,6 +115,8 @@ def deal_with_args(argv):
 
 
     elif argv[1] == '-b':
+        """This handles full batch processing (-b).
+        """
         if len(argv) < 3:
             print('No batch_run_files specified...')
         else:
@@ -159,10 +153,15 @@ def deal_with_args(argv):
 
 
     elif argv[1] == '-bm':
+        """This handles batch processing across multiple cores. While
+        the actual computation does not get parallelized in this code,
+        multiple processes are created and are mapped to the number of
+        cores requested.
+        """
         if len(argv) < 3:
             print('No batch_run_files specified...')
         else:
-            # ---------------------------------------------------------
+            # ----------------------------------------------------------
             # The third CL arg is the number of cores requested to be
             ## used. If the number of cores requested is greater than
             ## half of the total number of cores on the machine, nothing
@@ -173,7 +172,7 @@ def deal_with_args(argv):
                         "than HALF of available CPUs.")
                 print("There are " + mp.cpu_count() / 2 + "cores "
                         "available.")
-            # ---------------------------------------------------------
+            # ----------------------------------------------------------
 
             else:
                 for batch_run_file in argv[3:]:
@@ -213,23 +212,24 @@ def deal_with_args(argv):
 
                         mergers_master.append(mergers)
 
-                #processes = []
+                # ------------------------------------------------------
+                # This code snippet is likely a waste of memory, and
+                ## could just be implemented in the last for loop, but I
+                ## may incorporate another line of logic here.
                 all_mergers = []
                 for mergers in mergers_master:
                     for merger in mergers:
                         all_mergers.append(merger)
-                        #processes.append(mp.Process(target =
-                        #    get_runs_scores_and_wipe,
-                        #    args=(merger,cores_requested)))
+                # ------------------------------------------------------
 
-                #######################################################
-                # Now, I just need to add a method for distributing
-                ## processes among available cores (within reason).
-                with mp.Pool(processes = cores_requested) as pool:
+                # ------------------------------------------------------
+                # Creating the processes to map to multiple cores, then
+                ## immediately getting the result
+                with Pool(processes = cores_requested) as pool:
                     result = pool.map_async(get_runs_scores_and_wipe_unpack,
                             zip(all_mergers, range(len(all_mergers))))
                     result.get()
-
+                # ------------------------------------------------------
 
     else:
         print('Option not recognized')
@@ -262,7 +262,8 @@ def how_many_runs():
 
 
 def get_init(filename, first_run, last_run, do_all = False):
-    """Get the initial value strings from the target file"""
+    """Get the initial value strings from the target file
+    """
     init_value_strings = []
     if not do_all:
         for i, line in enumerate(open(filename, 'r')):
@@ -283,6 +284,11 @@ def get_init(filename, first_run, last_run, do_all = False):
 
 def setup_target_structure(filename, run_number, n1_particles,
         n2_particles):
+    """This function sets up the target structure using the Structure
+    module. The lines leading up to "target_dirs = Structure(paths)"
+    setup the "paths" list, which is the only argument that the
+    Structure module needs.
+    """
     root_name = 'output'
     run_number = str(run_number + 1).zfill(4)
     print(run_number)
@@ -290,8 +296,6 @@ def setup_target_structure(filename, run_number, n1_particles,
 
     paths = [root_name, name, 'run{}'.format(run_number)]
     target_dirs = Structure(paths)
-    #print(target_dirs.paths)
-    #print(target_dirs.full_path)
 
     return target_dirs
 
@@ -332,6 +336,9 @@ def wipe(merger, distinguisher = 1):
 
 
 def get_runs_scores_and_wipe(merger, distinguisher = 1):
+    """This function with a too-long name actually calls the Fortran
+    simulation via basic_run.
+    """
     system('./basic_run -m {} -n1 {} -n2 {} {}'
             .format(distinguisher,
                     merger.primary.particles,
@@ -341,17 +348,24 @@ def get_runs_scores_and_wipe(merger, distinguisher = 1):
 
 
 def get_runs_scores_and_wipe_unpack(zipped):
+    """This function just unzips zipped arguments for
+    get_runs_scores_and_wipe. This was the only implementation to be
+    able to call a multi-arg function with map_async using only one
+    arg.
+    """
     get_runs_scores_and_wipe(zipped[0], zipped[1])
 
 
-#def add_process(new_process):
-#
-#
-#def check_for_free_workers(workers):
-#    free_ar = [0]
-#    return free_ar
-
-
-
 if (__name__ == '__main__'):
-    main(argv)
+    if len(argv) > 1:
+        main(argv)
+
+    else:
+        print('run_multiple accepts the following command line'\
+                ' options:\n')
+        print('    -i  : run interactively\n'\
+              '    -bi : batch process (interactively...)\n'\
+              '    -b  : batch process\n'\
+              '    -bm : batch process on multiple cores')
+        print()
+        print('NOTE: -i and -b are mutually exclusive.')
