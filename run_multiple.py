@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """run_multiple
 Author : Jackson Cole
 Affil  : Middle Tennessee State University
@@ -14,8 +13,8 @@ Notes  : This script should be made executable, as it calls specifically python3
 
 from sys import argv
 from os import system, path, mkdir, chdir, rename, walk, listdir
-from merger import MergerRun, data_tools
-from data_tools import Structure, get_target_data
+from merger import MergerRun, data_tools, get_target_data
+from data_tools import Structure
 from numpy import genfromtxt
 from multiprocessing import Pool, cpu_count
 
