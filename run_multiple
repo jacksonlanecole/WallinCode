@@ -17,7 +17,7 @@ from os import system, path, mkdir, chdir, rename, walk, listdir
 from merger import MergerRun, data_tools
 from data_tools import Structure, get_target_data
 from numpy import genfromtxt
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
 def main(argv):
     """This program accepts command line arguments, and they are dealt
@@ -167,10 +167,10 @@ def main(argv):
             ## half of the total number of cores on the machine, nothing
             ## is executed.
             cores_requested = int(argv[2])
-            if cores_requested > mp.cpu_count() / 2:
+            if cores_requested > cpu_count() / 2:
                 print("ERROR: Per my rules, you shall not use more "
                         "than HALF of available CPUs.")
-                print("There are " + mp.cpu_count() / 2 + "cores "
+                print("There are " + cpu_count() / 2 + "cores "
                         "available.")
             # ----------------------------------------------------------
 
