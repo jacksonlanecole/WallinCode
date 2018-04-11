@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """run_multiple
 Author : Jackson Cole
 Affil  : Middle Tennessee State University
