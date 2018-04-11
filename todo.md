@@ -2,9 +2,9 @@
 - [ ] What are Max and Min point values in JSPAM code?
 
 # Need to do
-- [ ] Grab human_rated scores from SDSS file and save somewhere: **JACKSON**
+- [X] Grab human_rated scores from SDSS file and save somewhere.
 - [ ] Compare and constrast machine created scores with human scores **JACKSON**
-- [ ] Create target images for multiple SDSS **JACKSON**
+- [ ] Create target images for multiple SDSS **(IN PROGRESS)**
 - [X] Target image info.txt file containing pixel points for centers of galaxies **JACKSON**
 
 # WANT to do

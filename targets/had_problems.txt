@@ -6,3 +6,7 @@ hst_NGC_6786
 # Which ones are the interacting pair? Are they overlapping?
 587746029596311590
 # Would not download queried parameters
+587726033843585146
+# What is the disk???
+588007005230530750
+# Again, what is the disk in the secondary galaxy?

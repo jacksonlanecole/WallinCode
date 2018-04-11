@@ -22,6 +22,9 @@ temp.txt
 env
 temp
 input/test
+input/1.txt
+input/5.txt
+input/h.txt
 nohup*
 a.*
 a_*
