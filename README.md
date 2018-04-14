@@ -4,7 +4,7 @@
 - [Overview](#overview)
 - [Get Started](#getstarted)
 - [Targets Directory](#targets)
-- [run_multiple.py](#run_multiple.py)
+- [jspamcli.py](#jspamcli.py)
 - [data_tools](#data_tools)
 - [image_creator](#image_creator)
 - [comparison_code](#comparison_code)
@@ -60,8 +60,8 @@ To my knowledge, the original dataset is based off of images from SDSS DR7, but
 the image directory will contain processed images of those same targets using
 data from SDSS DR14.
 
-## run_multiple.py<a id="run_multiple.py">
-This fork of WallinCode contains `run_multiple.py`, a python3 script that runs
+## jspamcli.py<a id="jspamcli.py">
+This fork of WallinCode contains `jspamcli.py`, a python3 script that runs
 specific runs or specific ranges of runs from the overlapping galaxy pairs
 table at
 [https://data.galaxyzoo.org/mergers.html](https://data.galaxyzoo.org/mergers.html).
@@ -72,7 +72,7 @@ information for runs that recieved a human score in the Galaxy Zoo: Mergers
 project. There are 66,395 total runs in all of the input files combined.
 
 ```
-run_multiple accepts the following command line options:
+jspamcli accepts the following command line options:
 
     -i  : run interactively
     -bi : batch process (interactively...)
@@ -108,7 +108,7 @@ I recommend symlinking plotting_test in general to
 `./output/target/run_number/.`
 
 where the data files for each time step are located (i.e. a.000, a.001, ...).
-This directory structure is created by **run_multiple**.
+This directory structure is created by **jspamcli**.
 
 There is also an option to produce a gif of the 3D runs (not working at the
 moment, not sure what the problem is.)
