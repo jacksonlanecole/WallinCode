@@ -357,7 +357,7 @@ if (__name__ == '__main__'):
         main(argv)
 
     else:
-        print('run_multiple accepts the following command line'\
+        print('jspamcli accepts the following command line'\
                 ' options:\n')
         print('    -i  : run interactively\n'\
               '    -bi : batch process (interactively...)\n'\
