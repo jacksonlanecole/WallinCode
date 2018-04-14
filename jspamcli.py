@@ -1,14 +1,11 @@
-"""run_multiple
+"""jspamcli.py
 Author : Jackson Cole
 Affil  : Middle Tennessee State University
 Purpose: This program's purpose is to script the interaction with the
-         original Fortran90 basic_run program to allow for multiple runs to be
-         run... as one may guess from the program name. As of right now, it only
-         runs interactively, but future modifications will allow for batch
-         processing from what we will denote as a "run_conditions" file.
+         original Fortran90 basic_run program to allow for multiple runs
+         to be processed.
 
-Notes  : This script should be made executable, as it calls specifically python3
-         in the hashbang.
+Notes  : This script requires Python3.
 """
 
 from sys import argv
