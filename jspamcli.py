@@ -363,5 +363,4 @@ if (__name__ == '__main__'):
               '    -bi : batch process (interactively...)\n'\
               '    -b  : batch process\n'\
               '    -bm : batch process on multiple cores')
-        print()
-        print('NOTE: -i and -b are mutually exclusive.')
+
