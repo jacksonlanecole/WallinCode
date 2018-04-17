@@ -9,6 +9,7 @@ gscript
 *pyc
 *pycache*
 testing_environment
+test*
 target_images
 target_html_table_generator
 target_images-working
@@ -28,3 +29,4 @@ input/h.txt
 nohup*
 a.*
 a_*
+just_in_case
