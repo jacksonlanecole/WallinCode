@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup as bs
 import gzip
 from os import remove, mkdir, path, system
 
-def get_target_data(dest_path, switcher, target_given):
+def get_target_data(dest_path, switcher, target_given = 900):
 
     _base = 'https://data.galaxyzoo.org/'
     _URL = _base + 'mergers.html'
