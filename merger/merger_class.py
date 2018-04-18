@@ -26,6 +26,7 @@ import matplotlib.animation as animation
 import glob
 import imageio
 
+
 class MergerRun:
     def __init__(self, path_to_info_file, n1_particles, n2_particles,
             run_number, init_run_string):
@@ -67,7 +68,6 @@ class MergerRun:
         self.scores        = None
 
 
-
     def make_info_dict(self, path_to_info_file):
         entries = []
         with open(path_to_info_file, 'r') as f:
@@ -79,7 +79,6 @@ class MergerRun:
 
         info = eval('{' + ', '.join(entries) + '}')
         return info
-
 
 
     def setup_structure(self):
@@ -94,7 +93,6 @@ class MergerRun:
             target_dir = Structure(path_list)
 
         return target_dir
-
 
 
     def existing_structure(self):
@@ -138,6 +136,7 @@ class MergerRun:
                 for score_list in self.scores:
                     f.write(','.join(score_list) + '\n')
 
+
     def load_data(self, filename):
         data_file = open(filename, 'r')
         point_data = np.empty(shape=[len(data_file.readlines()), 6], dtype=float)
@@ -149,6 +148,7 @@ class MergerRun:
         data_file.close()
 
         return point_data
+
 
     def fill_all_data(self):
         list_of_files = []
@@ -165,6 +165,7 @@ class MergerRun:
 
         for filename in list_of_files:
             self.all_point_data.append(self.load_data(filename))
+
 
     def plotting_2d(self, point_data):
         plot_list = ['x', 'y']
@@ -201,6 +202,7 @@ class MergerRun:
         plt.yticks([],  [])
         plt.title(self.name)
 
+
     def make_gif(self, dimensions = 2):
         self.fill_all_data()
         gif_filename = "{sdssid}.{run}.{n1}.{n2}.{dim}D".format(
@@ -235,12 +237,14 @@ class MergerRun:
         imageio.mimwrite(file_path_name, images)
         os.system("rm a_*")
 
+
 class Size:
     def __init__(self, image_dim, actual_dim):
         """Constructor for a general size glass
         """
         self.image = image_dim
         self.real  = actual_dim
+
 
 class Dimensions:
     def __init__(self, height, width):
