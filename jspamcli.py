@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """jspamcli.py
 Author : Jackson Cole
 Affil  : Middle Tennessee State University
