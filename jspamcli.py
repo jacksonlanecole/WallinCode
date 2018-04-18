@@ -16,6 +16,7 @@ from data_tools import Structure
 from numpy import genfromtxt
 from multiprocessing import Pool, cpu_count
 
+
 def main(argv):
     """This program accepts command line arguments, and they are dealt
     with here.
@@ -264,6 +265,7 @@ def get_input_file_INTERACTIVE():
 
     return name, filename
 
+
 def how_many_runs():
     """Determine how many runs to do, return the numbers corresponding
     to the first and last runs. first_run and last_run will be first_run
@@ -390,8 +392,6 @@ def giffy(merger, dimensions, distinguisher = 1):
 
     merger.create()
     merger.make_gif(dimensions)
-
-
 
 
 if (__name__ == '__main__'):
