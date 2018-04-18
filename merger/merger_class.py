@@ -14,6 +14,18 @@ from galaxy import Galaxy
 import os
 from numpy import genfromtxt
 
+from sys import argv
+import numpy as np
+import scipy.ndimage as ndimage
+from scipy import misc
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.animation as animation
+import glob
+import imageio
+
 class MergerRun:
     def __init__(self, path_to_info_file, n1_particles, n2_particles,
             run_number, init_run_string):
@@ -49,8 +61,11 @@ class MergerRun:
                 xc        = self.info['sxc'],
                 yc        = self.info['syc'],)
 
+        self.all_point_data = []
+
         # None-type attibutes upon initialization
         self.scores        = None
+
 
 
     def make_info_dict(self, path_to_info_file):
@@ -123,6 +138,102 @@ class MergerRun:
                 for score_list in self.scores:
                     f.write(','.join(score_list) + '\n')
 
+    def load_data(self, filename):
+        data_file = open(filename, 'r')
+        point_data = np.empty(shape=[len(data_file.readlines()), 6], dtype=float)
+        data_file.seek(0)
+        for i, line in enumerate(data_file):
+            for j, value in enumerate(line.split()):
+                point_data[i, j] = float(value)
+
+        data_file.close()
+
+        return point_data
+
+    def fill_all_data(self):
+        list_of_files = []
+        for (dirpath, dirnames, filenames) in os.walk('.'):
+            filenames = [x for x in filenames if x.startswith('a_') and\
+                    x.endswith(tuple(str(i) for i in range(0,1000000)))]
+
+            filenames.sort(key=lambda x: int(''.join(filter(str.isdigit, x))))
+            for filename in filenames:
+                #if filename.startswith('a_') and \
+                #        filename.endswith(tuple(str(i)
+                #            for i in range(0,1000000))):
+                    list_of_files.append(filename)
+
+        for filename in list_of_files:
+            self.all_point_data.append(self.load_data(filename))
+
+    def plotting_2d(self, point_data):
+        plot_list = ['x', 'y']
+        #plot_list = [coord.strip() for coord in plot_list.split(',')]
+        x = point_data[:, 0]
+        y = point_data[:, 1]
+        z = point_data[:, 2]
+        fig = plt.figure()
+        rect = fig.patch
+        rect.set_facecolor('black')
+        ax = fig.gca()
+        plt.xlim(-4,4)
+        plt.ylim(-4,4)
+        # ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(eval(plot_list[0]), eval(plot_list[1]), s=1, marker='.', c='white', edgecolor='None')
+        ax.set_frame_on(False)
+        plt.axis('off')
+        return fig
+
+
+    def plotting_3d_for_gif(self, point_data):
+        x = point_data[:, 0]
+        y = point_data[:, 1]
+        z = point_data[:, 2]
+        fig = plt.figure()
+        ax = Axes3D(fig)
+        ax.set_xlim3d(-2, 2)
+        ax.set_ylim3d(-2, 2)
+        ax.set_zlim3d(-2, 2)
+        # ax = fig.add_subplot(111, projection='3d')
+
+        ax.scatter(x, y, z, s=1.5, marker='.', edgecolor='None')
+        plt.xticks([],  [])
+        plt.yticks([],  [])
+        plt.title(self.name)
+
+    def make_gif(self, dimensions = 2):
+        self.fill_all_data()
+        gif_filename = "{sdssid}.{run}.{n1}.{n2}.{dim}D".format(
+                sdssid = self.name,
+                run    = str(self.run + 1).zfill(4),
+                n1     = self.primary.particles,
+                n2     = self.secondary.particles,
+                dim    = dimensions)
+        temp_structure = Structure(['.','images',gif_filename])
+        temp_structure.create()
+
+        for i, data_list in enumerate(self.all_point_data):
+            if dimensions == 2:
+                fig = self.plotting_2d(data_list)
+                plt.savefig('./images/{}/img{}.png'.format(gif_filename,
+                    str(i).zfill(3)), facecolor=fig.get_facecolor(),
+                    edgecolor='none', dpi=300, pad_inches=0)
+
+            elif dimensions == 3:
+                self.plotting_3d_for_gif(data_list)
+                plt.savefig('./images/{}/img{}.png'.format(gif_filename,
+                    str(i).zfill(3)), dpi=300, bbox_inches='tight')
+
+        plt.close()
+        images = []
+        for root,_,image_files in os.walk('./images/{}'.format(gif_filename)):
+            image_files.sort(key=lambda x: int(''.join(filter(str.isdigit, x))))
+            for image in image_files:
+                image = os.path.join(root, image)
+                images.append(imageio.imread(image))
+        file_path_name = self.target_dirs.paths[1] + '/{}.gif'.format(gif_filename)
+        imageio.mimwrite(file_path_name, images)
+        os.system("rm a_*")
 
 class Size:
     def __init__(self, image_dim, actual_dim):

@@ -28,15 +28,7 @@ def main(argv):
                 '(yes/no)\n> ').lower() in yes):
             get_target_data('input', 0, 'dummy')
 
-        print('These are the available input files: ')
-        for file_name in [f for f in listdir('./input/')
-                if path.isfile('./input/' + f)]:
-                    print(file_name)
-        name = input('Copy and paste the name of a file in the input '\
-                'directory you want to work with:\n> ')[:-len('.txt')]
-        filename = './input/' + name + '.txt'
-        print('Target File Selected: {}'.format(
-            path.splitext(filename)[0]))
+        name, filename = get_input_file_INTERACTIVE()
 
         n1_particles = int(input('Enter number of particles for galaxy 1:\n> '))
         n2_particles = int(input('Enter number of particles for galaxy 2:\n> '))
@@ -228,6 +220,30 @@ def main(argv):
                     result.get()
                 # ------------------------------------------------------
 
+    elif argv[1] == '-g':
+        print("WELCOME TO THE GALAXY MERGER GIF CREATION TOOL")
+        name, filename = get_input_file_INTERACTIVE()
+
+        n1_particles = int(input('Enter number of particles for galaxy 1:\n> '))
+        n2_particles = int(input('Enter number of particles for galaxy 2:\n> '))
+
+        dimensions = int(input("2D or 3D? (2/3):\n> "))
+
+        first_run, last_run = how_many_runs()
+
+        init_value_strings, run_list = get_init(
+                filename, first_run, last_run)
+
+        path_to_info_file = './targets/' + name + '/' + name + '.info.txt'
+
+        mergers = []
+        for init_run_string, run in zip(init_value_strings, run_list):
+            mergers.append(MergerRun(path_to_info_file, n1_particles,
+                n2_particles, run, init_run_string))
+
+        for merger in mergers:
+            giffy(merger, dimensions)
+
     else:
         print('Option not recognized')
 
@@ -235,6 +251,18 @@ def main(argv):
     print('Exiting...')
 
 
+def get_input_file_INTERACTIVE():
+    print('These are the available input files: ')
+    for file_name in [f for f in listdir('./input/')
+            if path.isfile('./input/' + f)]:
+                print(file_name)
+    name = input('Copy and paste the name of a file in the input '\
+            'directory you want to work with:\n> ')[:-len('.txt')]
+    filename = './input/' + name + '.txt'
+    print('Target File Selected: {}'.format(
+        path.splitext(filename)[0]))
+
+    return name, filename
 
 def how_many_runs():
     """Determine how many runs to do, return the numbers corresponding
@@ -250,7 +278,7 @@ def how_many_runs():
 
     if how_many == 1:
         first_run = int(input('Enter number of run:\n> '))
-        last_run = first_run + 1
+        last_run = first_run
     elif how_many == 2:
         first_run = int(input('Enter number of first_run:\n> '))
         last_run = int(input('Enter number of last_run:\n> '))
@@ -353,6 +381,19 @@ def get_runs_scores_and_wipe_unpack(zipped):
     get_runs_scores_and_wipe(zipped[0], zipped[1])
 
 
+def giffy(merger, dimensions, distinguisher = 1):
+    system('./basic_run -g DUMMY_ARG -m {} -n1 {} -n2 {} {}'
+            .format(distinguisher,
+                    merger.primary.particles,
+                    merger.secondary.particles,
+                    merger.init))
+
+    merger.create()
+    merger.make_gif(dimensions)
+
+
+
+
 if (__name__ == '__main__'):
     if len(argv) > 1:
         main(argv)
@@ -363,5 +404,6 @@ if (__name__ == '__main__'):
         print('    -i  : run interactively\n'\
               '    -bi : batch process (interactively...)\n'\
               '    -b  : batch process\n'\
-              '    -bm : batch process on multiple cores')
+              '    -bm : batch process on multiple cores\n'\
+              '    -g  : GIF Creation Tool')
 
