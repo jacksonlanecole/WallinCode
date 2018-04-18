@@ -116,7 +116,7 @@ class MergerRun:
     def write_scores(self):
         path_to = './output/' + self.name + '/'
         if os.path.exists(path_to + self.humanscores_filename):
-            print(self.humanscores_filename + ' exists. Not overwriting.')
+            pass
 
         else:
             with open(path_to + self.humanscores_filename, 'w') as f:
