@@ -79,7 +79,6 @@ jspamcli accepts the following command line options:
     -b  : batch process
     -bm : batch process on multiple cores
 	-g  : GIF Creation Tool
-
 ```
 
 **WORKING ON ADDING USAGE INFORMATION...**
