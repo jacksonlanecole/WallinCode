@@ -109,8 +109,3 @@ mod_run: parameters_module.o io_module.o \
 	 init_module.o integrator.o $(LIBS)
 
 #align_module.o
-
-
-
-
-
