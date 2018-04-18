@@ -81,7 +81,12 @@ use df_module
 
 
   character (len=100) :: outfilename
+  ! ----------------------------------------------------------------------------
+  ! ADDED TO WORK WITH JSPAMCLI
+  ! ----------------------------------------------------------------------------
   character (len=15) :: distinguisher
+  logical :: show_all_steps = .false. ! defaults to false unless -g
+  ! ----------------------------------------------------------------------------
   integer (kind=4) :: showsteps
 
 !
@@ -199,7 +204,7 @@ end subroutine create_collision
 subroutine create_images
 
   iout = iout + 1
-  write(fname,'(a2,i3.3)') 'a.',iout
+  write(fname,'(a4,i3.3)') 'a_' // trim(distinguisher) // '.',iout
   open(unit, file=fname)
   call OUTPUT_PARTICLES(unit, x0, mass1, mass2, &
        eps1, eps2, &
@@ -263,8 +268,8 @@ end subroutine take_a_step
            case ("-d")
               call GETARG(i+1,buffer)
               shortbuf = TRIM(buffer)
-              outfilename = shortbuf              
-              
+              outfilename = shortbuf
+
            case ("-f")
               ! grab the filename
               call GETARG(i+1,buffer)
@@ -298,6 +303,10 @@ end subroutine take_a_step
             call GETARG(i+1, buffer)
             shortbuf = TRIM(buffer)
             distinguisher = shortbuf
+
+        case("-g")
+            show_all_steps = .true.
+
 
 
            case default

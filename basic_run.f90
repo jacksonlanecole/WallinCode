@@ -71,20 +71,19 @@ program basic_run
     call TAKE_A_STEP
     rrr = sqrt(x0(n,1)*x0(n,1)+x0(n,2)*x0(n,2) + x0(n,3)*x0(n,3))
 
-!    if (mod(istep, showsteps) == 0) then
-!       print*,"q",istep, time, rrr
-!    endif
+    if (mod(istep, showsteps) == 0) then
+       print*,"q",istep, time, rrr
+    endif
 
 
 
-!    if (mod(istep, 50) == 5) then
-!        call CREATE_IMAGES
-!    endif
+    if (mod(istep, 50) == 5 .and. show_all_steps) then
+        call CREATE_IMAGES
+    endif
   enddo
 
 !      call CREATE_IMAGES
   fname = trim(outfilename) // "_" // trim(distinguisher) // ".101"
-  !fname = trim(outfilename) // ".101"
   open(unit, file=trim(fname))
   call OUTPUT_PARTICLES(unit, x0, mass1, mass2, &
        eps1, eps2, &
