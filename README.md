@@ -78,40 +78,23 @@ jspamcli accepts the following command line options:
     -bi : batch process (interactively...)
     -b  : batch process
     -bm : batch process on multiple cores
+	-g  : GIF Creation Tool
 
-NOTE: -i and -b are mutually exclusive.
 ```
 
 **WORKING ON ADDING USAGE INFORMATION...**
 
-
 ## data_tools<a id="data_tools">
 This is a package that will contain any data tools that can be written as a
 general purpose tool. Right now, it contains
-- structure.py: This is a general_purpose directory structure creator.
-- get_target_data.py: This is a module that scrapes the mergers.html page
+- `structure.py`: This is a general_purpose directory structure creator.
+- `get_target_data.py`: This is a module that scrapes the mergers.html page
 for links to the zipped target data files. This may not belong in the package,
 but as of right now that is its home.
 
 ## image_creator<a id="image_creator">
 
 ## comparison_code<a id="comparison_code">
-
-## plotting_test<a id="plotting_test">
-This is the temporary name of a python3 script that will produce 2D and 3D plots
-of a particular time step. It takes one argument as shown below:
-
-`./plotting_test a.101`
-
-I recommend symlinking plotting_test in general to
-
-`./output/target/run_number/.`
-
-where the data files for each time step are located (i.e. a.000, a.001, ...).
-This directory structure is created by **jspamcli**.
-
-There is also an option to produce a gif of the 3D runs (not working at the
-moment, not sure what the problem is.)
 
 # Notes
 All development is currently being done on the
