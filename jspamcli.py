@@ -287,7 +287,7 @@ def setup_target_structure(filename, run_number, n1_particles,
     """
     root_name = 'output'
     run_number = str(run_number + 1).zfill(4)
-    print(run_number)
+    print("Processing: " + run_number)
     name = filename[len('./input/'):-len('.txt')]
 
     paths = [root_name, name, 'run{}'.format(run_number)]
